@@ -1,0 +1,3 @@
+class InactiveCodeError(Exception):
+    pass
+

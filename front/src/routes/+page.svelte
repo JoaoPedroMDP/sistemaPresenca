@@ -1,2 +1,19 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { initSocket } from '$lib/api/socket';
+	import QrCode from "$lib/QrCode.svelte";
+	import codeStore from "$lib/codeStore.svelte";
+	import "$lib/api/socket";
+
+	onMount(() => {
+		initSocket();
+	});
+</script>
+
+<div class="flex flex-col items-center justify-center h-dvh">
+	{#if codeStore.code}
+		<div class="flex justify-center items-center">
+			<QrCode />
+		</div>
+	{/if}
+</div>

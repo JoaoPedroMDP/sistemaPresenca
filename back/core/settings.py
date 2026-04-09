@@ -25,12 +25,13 @@ SECRET_KEY = 'django-insecure-=wfgtn!celr-_$vl@geu*@7ad)tv$xtf5)@m0ig4l2z_*45#9m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
 INSTALLED_APPS = [
+    'ponto.apps.PontoConfig',
+    'daphne', # Para suportar ASGI e a lib Channels
+    'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -67,6 +68,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
+ASGI_APPLICATION = 'core.asgi.application'
 
 
 # Database
@@ -115,3 +117,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1'
+]
+
+LAYER_GROUP = "ponto"
