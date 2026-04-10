@@ -1,4 +1,4 @@
-from ponto.errors import InactiveCodeError
+from ponto.errors import UsedCodeError
 from ponto.controllers.ws_controller import WsController
 from ponto.models import Code
 from ponto.repositories.code_repository import CodeRepository
@@ -7,7 +7,7 @@ from ponto.repositories.code_repository import CodeRepository
 class CodeController:
     @staticmethod
     def get_unused_code() -> Code:
-        unused = CodeRepository.get_active_code()
+        unused = CodeRepository.get_unused_code()
         if not unused:
             unused = CodeRepository.create()
 
@@ -18,7 +18,7 @@ class CodeController:
         code = CodeRepository.get_by_code(code_str)
 
         if code.used:
-            raise InactiveCodeError("Code already used")
+            raise UsedCodeError("Code already used")
 
         CodeRepository.mark_as_used(code)
 

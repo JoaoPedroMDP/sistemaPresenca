@@ -1,4 +1,6 @@
-import { SocketEvent } from '$lib/types/socket';
+import type SocketEvent from "./events";
+import build from "$events/eventBuilder";
+
 
 type SocketRef = { current: WebSocket | null };
 
@@ -18,7 +20,7 @@ function createSocket(): void {
 
     ws.onmessage = (event: MessageEvent<string>): void => {
         try {
-            const sevent: SocketEvent = SocketEvent.build(event.data);
+            const sevent: SocketEvent = build(event.data);
             sevent.handle();
         } catch (err) {
             console.error('Erro ao processar mensagem WebSocket:', err);

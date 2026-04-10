@@ -17,7 +17,7 @@ class Member(Base):
 
 class Code(Base):
     code = models.CharField(max_length=100, unique=True)
-    used = models.BooleanField(default=True)
+    used = models.BooleanField(default=False)
     used_by = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -63,7 +63,7 @@ class TimeScoreRules(Base):
         return f"{self.event.name} {self.start_time} - {self.end_time}: {self.points} pontos."
 
 class Event(Base):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
 
     def __str__(self):

@@ -5,7 +5,7 @@ from ninja import Router
 
 from ponto.controllers.checkin_controller import CheckinController
 from ponto.controllers.code_controller import CodeController
-from ponto.errors import InactiveCodeError
+from ponto.errors import UsedCodeError
 from ponto.models import Code
 from ponto.repositories.checkin_repository import CheckinRepository
 from ponto.repositories.code_repository import CodeRepository
@@ -35,16 +35,19 @@ def checkin(request, code_str: str, m_id: int):
             "error_code": 400,
             "error": "Este código já foi usado por outro membro. Escaneie o QR code novamente."}
 
-    CheckinController.checkin_sabbath(member)
+    points = CheckinController.checkin_sabbath(member)
     CodeRepository.assign_member(code, member)
 
-    return {"message": f"Presença marcada!"}
+    return {
+        "message": f"Presença marcada!",
+        "points": points
+    }
 
 @router.get("/members/pending/{code}")
 def get_members(request, code: str):
     try:
         CodeController.use_code(code)
-    except InactiveCodeError as e:
+    except UsedCodeError as e:
         return {
             "error_code": 400,
             "error": "Este código já foi usado. Escaneie o QR code novamente."}
@@ -57,5 +60,6 @@ def get_members(request, code: str):
         {"id": member.id, "name": member.name} 
         for member in MemberRepository.didnt_checkin_today()
     ]
+
 
     return {"members": membs}

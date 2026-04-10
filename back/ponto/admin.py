@@ -36,8 +36,11 @@ class TimeScoreRulesAdmin(admin.ModelAdmin):
     def Fim(self, obj):
         return obj.end_time.strftime("%H:%M:%S")
 
+class CodeAdmin(admin.ModelAdmin):
+    list_display = ("code", "used", "created_at")
+    search_fields = ("code",)
 
-admin.site.register(Code)
+admin.site.register(Code, CodeAdmin)
 admin.site.register(Member)
 admin.site.register(CheckIn, CheckInAdmin)
 admin.site.register(Scoreboard)

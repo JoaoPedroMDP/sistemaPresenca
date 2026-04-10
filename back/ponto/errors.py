@@ -1,3 +1,3 @@
-class InactiveCodeError(Exception):
+class UsedCodeError(Exception):
     pass
 

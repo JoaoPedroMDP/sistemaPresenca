@@ -9,11 +9,11 @@ class CodeRepository:
         return new_code
 
     @staticmethod
-    def get_active_code():
-        active = Code.objects.filter(used=False)
+    def get_unused_code():
+        unused = Code.objects.filter(used=False)
 
-        if len(active) > 0:
-            return active[0]
+        if len(unused) > 0:
+            return unused[0]
 
         return None
 

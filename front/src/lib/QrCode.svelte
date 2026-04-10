@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-    import codeStore from '$lib/codeStore.svelte';
+    import codeStore from '$lib/stores/codeStore.svelte';
     import logo from '$lib/assets/jovensLogoAzul.png';
 
     let error = $state<string | null>(null)

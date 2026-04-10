@@ -6,6 +6,7 @@
     let { params, data }: PageProps = $props()
     let error: string|null = $state(null);
     let success: boolean|null = $state(null);
+    let pointsEarned = $state<number|null>(10);
 
     let members: Member[] = $derived.by(() => {
         return data.members || []
@@ -22,17 +23,20 @@
         });
         let result = await response.json();
 
-
         if(result.error){
             error = result.error;
         } else {
             setTimeout(() => {
                 window.location.href = "https://es.minhaes.org/quizgeral/2/868B043F-A0E7-4ABA-B30A-4F79B2E741D9";
-            }, 1500);
+            }, 3000);
             success = true;
+            pointsEarned = result.points;
         }
     }
 
+    function teste(){
+        success = true;
+    }
 </script>
 
 <div id="main" data-success={success} class="relative p-4 h-dvh flex flex-col justify-center items-center overflow-hidden">
@@ -52,6 +56,7 @@
             <Button disabled={!member} onclick={checkin} text="Marcar presença"/>
         </div>
     </div>
+    <span id="points" data-success={success} class="text-black text-2xl">+{pointsEarned}pts</span>
 </div>
 
 <style>
@@ -88,13 +93,18 @@
         overflow: hidden;
     }
 
-    /* #select, #button {
-        position: relative;
+    #points {
+        position: absolute;
+        bottom: -5%;
         transform: scale(1);
-        transition: transform 3.5s ease-in-out;
+        transition: 
+            bottom 1.5s cubic-bezier(.29,.85,.66,.99), 
+            transform 1.6s cubic-bezier(.5,.52,.69,.61);
     }
-
-    #select[data-success="true"], #button[data-success="true"] {
-        transform: scale(0);
-    } */
+    
+    #points[data-success="true"] {
+        transform: scale(2);
+        bottom: 50%;
+        animation: fadeOut 1s ease-in-out 1.5s;
+    }
 </style>

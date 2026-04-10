@@ -34,3 +34,10 @@ class WsConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "newCode",
             "code": code}))
+
+    async def memberCheckin(self, event):
+        lgr.debug("Received member check-in event")
+        member = event["member"]
+        await self.send(text_data=json.dumps({
+            "type": "memberCheckin",
+            "member": member}))
