@@ -1,0 +1,14 @@
+FROM ghcr.io/astral-sh/uv:alpine
+WORKDIR /app
+
+RUN apk add --no-cache tzdata
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync
+
+COPY . /app
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/back_entrypoint.sh", "--"]
+CMD ["uv", "run", "daphne", "-b", "0.0.0.0", "-p", "8000", "core.asgi:application"]

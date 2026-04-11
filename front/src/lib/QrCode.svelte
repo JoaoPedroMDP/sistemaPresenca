@@ -7,7 +7,7 @@
 
     const presenceUrl = $derived(
         codeStore.code
-            ? `http://${import.meta.env.VITE_HOST_NETWORK}:${import.meta.env.VITE_HOST_PORT}/checkin/${codeStore.code}`
+            ? `${window.location.protocol}//${window.location.host}/checkin/${codeStore.code}`
             : null
     )
 
@@ -36,5 +36,6 @@
         >
             <img src={logo} alt="Logo dos Jovens da Igreja Adventista do Sétimo dia distrito do Água Verde" slot="icon" />
         </qr-code>
+        <h1 class="text-indigo-900">{presenceUrl}</h1>
     {/if}
 </div>

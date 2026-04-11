@@ -1,0 +1,14 @@
+FROM oven/bun:latest AS build
+
+WORKDIR /app
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY . .
+RUN bun run build
+
+FROM alpine:latest
+COPY --from=build /app/build /app/front
+RUN ls -la /app/front
+CMD ["sh", "-c", "cp -rf /app/front/. /mnt/front/ && tail -f /dev/null"]

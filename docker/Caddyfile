@@ -1,0 +1,37 @@
+:8000 {
+    handle /static/* {
+        root * /app/staticfiles
+        uri strip_prefix /static
+
+        file_server
+    }
+
+    # API Django
+    handle {
+        reverse_proxy back:8000
+    }
+
+    log {
+        output stdout
+    }
+}
+
+:3000 {
+    handle /api/* {
+        reverse_proxy back:8000
+    }
+
+    handle /ws* {
+        reverse_proxy back:8000
+    }
+
+    handle {
+        root * /app/front
+        try_files {path} /index.html
+        file_server
+    }
+
+    log {
+        output stdout
+    }
+}
