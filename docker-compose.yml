@@ -2,13 +2,14 @@
 
 services:
   back:
+    env_file:
+      - ./back/.env
     build: 
       context: ./back
       dockerfile: ../docker/Dockerfile.back
     volumes:
       - back_static:/app/staticfiles
       - ./docker/back_entrypoint.sh:/app/back_entrypoint.sh
-      - ./back/.env:/app/.env
 
   front:
     build: 
