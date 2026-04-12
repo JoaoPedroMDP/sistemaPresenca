@@ -116,6 +116,7 @@ CHANNEL_LAYERS = {
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1'
+    '142.93.248.150'
 ]
 
 LAYER_GROUP = "ponto"
