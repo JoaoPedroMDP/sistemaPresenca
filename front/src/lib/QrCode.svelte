@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
     import codeStore from '$lib/stores/codeStore.svelte';
-    import logo from '$lib/assets/jovensLogoAzul.png';
+    import logo from '$lib/assets/jovensLogoVerde.png';
 
     let error = $state<string | null>(null)
 
@@ -36,6 +36,6 @@
         >
             <img src={logo} alt="Logo dos Jovens da Igreja Adventista do Sétimo dia distrito do Água Verde" slot="icon" />
         </qr-code>
-        <h1 class="text-indigo-900">{presenceUrl}</h1>
+        <!-- <h1 class="text-indigo-900">{presenceUrl}</h1> -->
     {/if}
 </div>

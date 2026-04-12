@@ -27,12 +27,12 @@
 			<p class="text-2xl text-indigo-900">Digite o nome do evento para gerar o QR Code</p>
 			<Text 
 				bind:value={event_name}
-				{onkeyup} 
+				{onkeyup}
 				cls="text-indigo-900 border-2 border-emerald-400"/>
 		</div>
 	{:else}
 		{#if codeStore.code}
-			<div class="flex justify-center items-center border-r-2 ">
+			<div class="flex justify-center items-center">
 				<QrCode />
 			</div>
 		{/if}
