@@ -10,4 +10,5 @@ dependencies = [
     "django>=6.0.3",
     "django-extensions>=4.1",
     "django-ninja>=1.6.2",
+    "ipdb>=0.13.13",
 ]

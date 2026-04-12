@@ -1,8 +1,16 @@
 <script lang="ts">
-    let { value = $bindable(), label } = $props();
+    let { 
+        value = $bindable(), 
+        onkeyup,
+        label = null,
+        cls = '',
+        labelCls = '',
+         } = $props();
 </script>
 
 <label>
-    <span class="label-text">{label}</span>
-    <input type="text" class="input bg-primary" bind:value={value} />
+    {#if label}
+        <span class={`label-text ${labelCls}`}>{label}</span>
+    {/if}
+    <input type="text" class={`input bg-primary ${cls}`} bind:value={value} {onkeyup} />
 </label>

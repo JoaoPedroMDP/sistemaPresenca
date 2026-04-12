@@ -1,26 +1,26 @@
 from ponto.errors import UsedCodeError
-from ponto.controllers.ws_controller import WsController
-from ponto.models import Code
+from ponto.models import Code, Event
 from ponto.repositories.code_repository import CodeRepository
+from ponto.repositories.event_repository import EventRepository
 
 
 class CodeController:
     @staticmethod
-    def get_unused_code() -> Code:
-        unused = CodeRepository.get_unused_code()
+    def get_unused_code(event: Event) -> Code:
+        unused = CodeRepository.get_unused_code(event)
         if not unused:
-            unused = CodeRepository.create()
+            unused = CodeRepository.create(event)
 
         return unused
 
-    @staticmethod
-    def use_code(code_str: str) -> None:
-        code = CodeRepository.get_by_code(code_str)
+    @classmethod
+    def get_unused_code_event_name(cls, event_name: str) -> Code:
+        event: Event = EventRepository.get(name=event_name)
+        return cls.get_unused_code(event)
 
+    @staticmethod
+    def use_code(code: Code) -> None:
         if code.used:
             raise UsedCodeError("Code already used")
 
         CodeRepository.mark_as_used(code)
-
-        new_code = CodeController.get_unused_code()
-        WsController.sync_emit_new_code(new_code)

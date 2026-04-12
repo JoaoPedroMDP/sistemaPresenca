@@ -22,11 +22,16 @@ class Command(BaseCommand):
         return super().add_arguments(parser)
 
     def handle(self, *args, **options):
-        Scoreboard.objects.create(name="Escola Sabatina")
-        es = Event.objects.create(
-            name="Escola Sabatina", 
-            description="Todos os sábados, das 9h às 10h."
-        )
+        if Scoreboard.objects.count() == 0:
+            Scoreboard.objects.create(name="Escola Sabatina")
+        
+        es = Event.objects.filter(name="Escola Sabatina").first()
+        if not es:
+            es = Event.objects.create(
+                name="Escola Sabatina", 
+                description="Todos os sábados, das 9h às 10h."
+            )
+
         if TimeScoreRules.objects.count() == 0:
             lgr.info("Criando regras de pontuação para o evento Escola Sabatina...")
             self._create_timescore_rules(es)

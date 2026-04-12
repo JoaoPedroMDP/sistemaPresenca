@@ -1,44 +1,47 @@
+
 import logging
+from typing import Dict
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from ponto.models import Code, Member
-from core.settings import LAYER_GROUP
+from ponto.controllers.code_controller import CodeController
+from ponto.models import Member, Event
+
 
 lgr = logging.getLogger(__name__)
 
+
 class WsController:
     @staticmethod
-    async def _emit_new_code(code: Code):
+    def get_cl():
         channel_layer = get_channel_layer()
-        await channel_layer.group_send(
-            LAYER_GROUP,
+        if not channel_layer:
+            lgr.error("Channel layer não foi configurado corretamente.")
+            raise RuntimeError("Channel layer não disponível")
+        return channel_layer
+
+    @classmethod
+    def group_send(cls,group_name, message: Dict):
+        async_to_sync(cls.get_cl().group_send)(group_name, message)
+
+    @classmethod
+    def send_new_code_for_event(cls, event: Event):
+        code = CodeController.get_unused_code(event)
+        cls.group_send(
+            event.as_websocket_group_name(),
             {
                 "type": "newCode",
                 "code": code.code
             }
         )
-
-    @staticmethod
-    async def _emit_member_checkin(member: Member):
-        channel_layer = get_channel_layer()
-        await channel_layer.group_send(
-            LAYER_GROUP,
+    
+    @classmethod
+    def send_member_checkin_for_event(cls, member: Member, event: Event):
+        cls.group_send(
+            event.as_websocket_group_name(),
             {
                 "type": "memberCheckin",
                 "member": member.name
             }
         )
-
-    @classmethod
-    async def async_emit_new_code(cls, code: Code):
-        await cls._emit_new_code(code)
-
-    @classmethod
-    def sync_emit_new_code(cls, code: Code):
-        async_to_sync(cls._emit_new_code)(code)
-
-    @classmethod
-    def sync_emit_member_checkin(cls, member: Member):
-        async_to_sync(cls._emit_member_checkin)(member)

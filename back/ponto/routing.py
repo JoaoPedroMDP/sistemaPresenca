@@ -1,7 +1,7 @@
 from django.urls import re_path
 
-from ponto.wsconsumer import WsConsumer
+from ponto.consumer import Consumer
 
 ws_urlpatterns = [
-    re_path(r"^ws$", WsConsumer.as_asgi()),
+    re_path(r"^ws$", Consumer.as_asgi()),
 ]

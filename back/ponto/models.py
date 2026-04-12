@@ -15,13 +15,27 @@ class Member(Base):
     def __str__(self):
         return self.name
 
+
+class Event(Base):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+    
+    def as_websocket_group_name(self):
+        return self.name.lower().replace(" ", "_")
+
+
 class Code(Base):
     code = models.CharField(max_length=100, unique=True)
     used = models.BooleanField(default=False)
     used_by = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True, blank=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.code
+
 
 class CheckIn(Base):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
@@ -30,11 +44,13 @@ class CheckIn(Base):
     def __str__(self):
         return f"{self.member.name} - {self.date}"
 
+
 class Scoreboard(Base):
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
+
 
 class Score(Base):
     board = models.ForeignKey(Scoreboard, on_delete=models.CASCADE)
@@ -43,6 +59,7 @@ class Score(Base):
 
     def __str__(self):
         return f"{self.member.name} - {self.points} pontos"
+
 
 class TimeScoreRules(Base):
     """
@@ -62,9 +79,3 @@ class TimeScoreRules(Base):
     def __str__(self):
         return f"{self.event.name} {self.start_time} - {self.end_time}: {self.points} pontos."
 
-class Event(Base):
-    name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.name

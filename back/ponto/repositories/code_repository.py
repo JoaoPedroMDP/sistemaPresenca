@@ -1,16 +1,17 @@
+from typing import Optional
 from uuid import uuid4
 
-from ponto.models import Code
+from ponto.models import Code, Event
 
 class CodeRepository:
     @staticmethod
-    def create():
-        new_code = Code.objects.create(code=str(uuid4()))
+    def create(event: Event):
+        new_code = Code.objects.create(code=str(uuid4()), event=event)
         return new_code
 
     @staticmethod
-    def get_unused_code():
-        unused = Code.objects.filter(used=False)
+    def get_unused_code(event: Event) -> Optional[Code]:
+        unused = Code.objects.filter(used=False, event=event)
 
         if len(unused) > 0:
             return unused[0]

@@ -31,7 +31,7 @@
             id="qrCode"
             contents={presenceUrl}
             module-color="var(--color-indigo-900)"
-            position-ring-color="var(--color-emerald-500)"
+            position-ring-color="var(--color-emerald-400)"
             position-center-color="var(--color-indigo-900)"
         >
             <img src={logo} alt="Logo dos Jovens da Igreja Adventista do Sétimo dia distrito do Água Verde" slot="icon" />

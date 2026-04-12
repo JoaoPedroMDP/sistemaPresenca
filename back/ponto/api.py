@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from ninja import Router
 
+from ponto.controllers.ws_controller import WsController
 from ponto.controllers.checkin_controller import CheckinController
 from ponto.controllers.code_controller import CodeController
 from ponto.errors import UsedCodeError
@@ -24,12 +25,12 @@ def checkin(request, code_str: str, m_id: int):
         return {
             "error_code": 404,
             "error": "Membro não encontrado no banco..."}
-    
+
     if not code:
         return {
             "error_code": 404,
             "error": "Código não encontrado no banco..."}
-    
+
     if code.used_by and code.used_by != member:
         return {
             "error_code": 400,
@@ -43,11 +44,14 @@ def checkin(request, code_str: str, m_id: int):
         "points": points
     }
 
-@router.get("/members/pending/{code}")
-def get_members(request, code: str):
+
+@router.get("/members/pending/{code_str}")
+def get_members(request, code_str: str):
     try:
+        code = CodeRepository.get_by_code(code_str)
         CodeController.use_code(code)
-    except UsedCodeError as e:
+        WsController.send_new_code_for_event(code.event)
+    except UsedCodeError:
         return {
             "error_code": 400,
             "error": "Este código já foi usado. Escaneie o QR code novamente."}
@@ -57,7 +61,7 @@ def get_members(request, code: str):
             "error": "Este código não existe! Escaneie o QR code novamente."}
 
     membs = [
-        {"id": member.id, "name": member.name} 
+        {"id": member.id, "name": member.name}
         for member in MemberRepository.didnt_checkin_today()
     ]
 
