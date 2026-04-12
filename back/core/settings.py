@@ -1,4 +1,5 @@
 from pathlib import Path
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -113,11 +114,9 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     }
 }
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1'
-    '142.93.248.150'
-]
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+
 
 LAYER_GROUP = "ponto"
 LOGGING = {
