@@ -1,7 +1,7 @@
-from ponto.errors import UsedCodeError
-from ponto.models import Code, Event
-from ponto.repositories.code_repository import CodeRepository
-from ponto.repositories.event_repository import EventRepository
+from presenca.errors import UsedCodeError
+from presenca.models import Code, Event
+from presenca.repositories.code_repository import CodeRepository
+from presenca.repositories.event_repository import EventRepository
 
 
 class CodeController:

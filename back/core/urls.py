@@ -2,12 +2,12 @@ from django.contrib import admin
 from django.urls import path
 from ninja import NinjaAPI
 
-from ponto.models import Code, Member
-from ponto.api import router as ponto_router
+from presenca.models import Code, Member
+from presenca.api import router as ponto_router
 
 
 api = NinjaAPI()
-api.add_router("/ponto/", ponto_router)
+api.add_router("/presenca/", ponto_router)
 
 
 urlpatterns = [

@@ -3,8 +3,8 @@ import logging
 
 from django.core.management.base import BaseCommand, CommandParser
 
-from ponto.constants import DAY_END, DAY_START
-from ponto.models import Event, Member, Scoreboard, TimeScoreRules
+from presenca.constants import DAY_END, DAY_START
+from presenca.models import Event, Member, Scoreboard, TimeScoreRules
 
 
 lgr = logging.getLogger(__name__)

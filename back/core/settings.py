@@ -18,7 +18,7 @@ DEBUG = True
 # Application definition
 
 INSTALLED_APPS = [
-    'ponto.apps.PontoConfig',
+    'presenca.apps.PontoConfig',
     'daphne', # Para suportar ASGI e a lib Channels
     'django_extensions',
     'django.contrib.admin',
@@ -119,7 +119,6 @@ CHANNEL_LAYERS = {
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 
-LAYER_GROUP = "ponto"
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -129,7 +128,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'ponto': {
+        'presenca': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,

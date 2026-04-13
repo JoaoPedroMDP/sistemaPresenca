@@ -1,4 +1,4 @@
-from ponto.models import Scoreboard
+from presenca.models import Scoreboard
 
 
 class ScoreboardRepository:

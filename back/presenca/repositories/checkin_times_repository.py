@@ -1,6 +1,6 @@
 from datetime import time
 
-from ponto.models import TimeScoreRules, Event
+from presenca.models import TimeScoreRules, Event
 
 
 class TimeScoreRulesRepository:

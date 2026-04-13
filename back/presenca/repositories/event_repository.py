@@ -1,4 +1,4 @@
-from ponto.models import Event
+from presenca.models import Event
 
 class EventRepository:
     @staticmethod

@@ -1,9 +1,9 @@
-from ponto.controllers.ws_controller import WsController
-from ponto.repositories.event_repository import EventRepository
-from ponto.models import Member
-from ponto.repositories.checkin_times_repository import TimeScoreRulesRepository
-from ponto.controllers.scoreboard_controller import ScoreboardController
-from ponto.repositories.checkin_repository import CheckinRepository
+from presenca.controllers.ws_controller import WsController
+from presenca.repositories.event_repository import EventRepository
+from presenca.models import Member
+from presenca.repositories.checkin_times_repository import TimeScoreRulesRepository
+from presenca.controllers.scoreboard_controller import ScoreboardController
+from presenca.repositories.checkin_repository import CheckinRepository
 
 CHECKIN_BOARD = "Presença"
 SABBATH_CLASS_EVENT = "Escola Sabatina"

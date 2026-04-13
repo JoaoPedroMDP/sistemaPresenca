@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import uuid4
 
-from ponto.models import Code, Event
+from presenca.models import Code, Event
 
 class CodeRepository:
     @staticmethod

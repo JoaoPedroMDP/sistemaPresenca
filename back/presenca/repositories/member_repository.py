@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from ponto.models import Member
+from presenca.models import Member
 
 
 class MemberRepository:

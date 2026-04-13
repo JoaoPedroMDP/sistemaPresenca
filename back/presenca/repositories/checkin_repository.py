@@ -1,4 +1,4 @@
-from ponto.models import CheckIn, Code, Member
+from presenca.models import CheckIn, Code, Member
 
 
 class CheckinRepository:

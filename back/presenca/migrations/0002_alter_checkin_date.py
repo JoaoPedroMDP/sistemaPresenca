@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ponto', '0001_initial'),
+        ('presenca', '0001_initial'),
     ]
 
     operations = [

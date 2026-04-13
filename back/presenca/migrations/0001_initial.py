@@ -58,8 +58,8 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('code', models.CharField(max_length=100, unique=True)),
                 ('used', models.BooleanField(default=False)),
-                ('event', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ponto.event')),
-                ('used_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ponto.member')),
+                ('event', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='presenca.event')),
+                ('used_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='presenca.member')),
             ],
             options={
                 'abstract': False,
@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('date', models.DateTimeField(auto_now_add=True)),
-                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ponto.member')),
+                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='presenca.member')),
             ],
             options={
                 'abstract': False,
@@ -85,8 +85,8 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('points', models.FloatField(default=0)),
-                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ponto.member')),
-                ('board', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ponto.scoreboard')),
+                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='presenca.member')),
+                ('board', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='presenca.scoreboard')),
             ],
             options={
                 'abstract': False,
@@ -101,7 +101,7 @@ class Migration(migrations.Migration):
                 ('start_time', models.TimeField()),
                 ('end_time', models.TimeField()),
                 ('points', models.FloatField(default=1)),
-                ('event', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='checkin_score_times', to='ponto.event')),
+                ('event', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='checkin_score_times', to='presenca.event')),
             ],
             options={
                 'unique_together': {('event', 'end_time'), ('event', 'start_time')},

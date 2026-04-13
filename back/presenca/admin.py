@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from ponto.utils import is_today
-from ponto.models import CheckIn, Code, Event, TimeScoreRules, Member, Score, Scoreboard
+from presenca.utils import is_today
+from presenca.models import CheckIn, Code, Event, TimeScoreRules, Member, Score, Scoreboard
 
 
 class CheckInAdmin(admin.ModelAdmin):

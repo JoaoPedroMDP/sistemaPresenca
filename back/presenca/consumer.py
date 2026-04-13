@@ -5,8 +5,8 @@ from asgiref.sync import async_to_sync
 
 from channels.generic.websocket import JsonWebsocketConsumer
 
-from ponto.repositories.event_repository import EventRepository
-from ponto.controllers.ws_controller import WsController
+from presenca.repositories.event_repository import EventRepository
+from presenca.controllers.ws_controller import WsController
 
 
 lgr = logging.getLogger(__name__)

@@ -10,7 +10,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 # do Django
 django_asgi_app = get_asgi_application()
 
-from ponto.routing import ws_urlpatterns
+from presenca.routing import ws_urlpatterns
 
 
 application = ProtocolTypeRouter({

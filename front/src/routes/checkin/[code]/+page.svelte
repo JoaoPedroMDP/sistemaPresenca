@@ -14,7 +14,7 @@
     let member: number | null = $state(null)
 
     onMount(async ()=>{
-        const response = await fetch(`/api/ponto/members/pending/${params.code}`);
+        const response = await fetch(`/api/presenca/members/pending/${params.code}`);
         let parsed = await response.json();
 
         if(parsed.error){
@@ -29,7 +29,7 @@
             error_str = "Selecione um membro para marcar presença";
         }
 
-        let response = await fetch(`/api/ponto/checkin/${params.code}/${member}`, {
+        let response = await fetch(`/api/presenca/checkin/${params.code}/${member}`, {
             method: "POST"
         });
         let result = await response.json();

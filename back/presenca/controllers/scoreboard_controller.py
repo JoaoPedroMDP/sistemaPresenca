@@ -1,6 +1,6 @@
-from ponto.repositories.score_repository import ScoreRepository
-from ponto.repositories.scoreboard_repository import ScoreboardRepository
-from ponto.models import Member
+from presenca.repositories.score_repository import ScoreRepository
+from presenca.repositories.scoreboard_repository import ScoreboardRepository
+from presenca.models import Member
 
 
 class ScoreboardController:

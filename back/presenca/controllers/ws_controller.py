@@ -5,8 +5,8 @@ from typing import Dict
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from ponto.controllers.code_controller import CodeController
-from ponto.models import Member, Event
+from presenca.controllers.code_controller import CodeController
+from presenca.models import Member, Event
 
 
 lgr = logging.getLogger(__name__)

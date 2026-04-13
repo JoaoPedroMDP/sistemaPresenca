@@ -3,14 +3,14 @@ from uuid import uuid4
 
 from ninja import Router
 
-from ponto.controllers.ws_controller import WsController
-from ponto.controllers.checkin_controller import CheckinController
-from ponto.controllers.code_controller import CodeController
-from ponto.errors import UsedCodeError
-from ponto.models import Code
-from ponto.repositories.checkin_repository import CheckinRepository
-from ponto.repositories.code_repository import CodeRepository
-from ponto.repositories.member_repository import MemberRepository
+from presenca.controllers.ws_controller import WsController
+from presenca.controllers.checkin_controller import CheckinController
+from presenca.controllers.code_controller import CodeController
+from presenca.errors import UsedCodeError
+from presenca.models import Code
+from presenca.repositories.checkin_repository import CheckinRepository
+from presenca.repositories.code_repository import CodeRepository
+from presenca.repositories.member_repository import MemberRepository
 
 router = Router()
 lgr = logging.getLogger(__name__)

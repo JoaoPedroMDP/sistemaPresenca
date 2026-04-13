@@ -1,4 +1,4 @@
-from ponto.models import Score
+from presenca.models import Score
 
 
 class ScoreRepository:
