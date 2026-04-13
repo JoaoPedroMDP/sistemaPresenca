@@ -10,7 +10,7 @@ services:
     volumes:
       - back_static:/app/staticfiles
       - ./docker/back_entrypoint.sh:/app/back_entrypoint.sh
-      - db_data:/app/db.sqlite3
+      - ./db.sqlite3:/app/db.sqlite3
 
   front:
     build: 
@@ -35,6 +35,4 @@ services:
 
 volumes:
   back_static:
-    driver: local
-  db_data:
     driver: local
