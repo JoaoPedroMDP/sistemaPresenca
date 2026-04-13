@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 
 from ponto.utils import is_today
 from ponto.models import CheckIn, Code, Event, TimeScoreRules, Member, Score, Scoreboard
+
 
 class CheckInAdmin(admin.ModelAdmin):
     list_display = ("Nome", "Data", "Horário")
@@ -23,6 +25,7 @@ class CheckInAdmin(admin.ModelAdmin):
     def Nome(self, obj):
         return obj.member.name
 
+
 class TimeScoreRulesAdmin(admin.ModelAdmin):
     list_display = ('event', 'Inicio', 'Fim', 'points')
     list_filter = ('event',)
@@ -36,14 +39,22 @@ class TimeScoreRulesAdmin(admin.ModelAdmin):
     def Fim(self, obj):
         return obj.end_time.strftime("%H:%M:%S")
 
+
 class CodeAdmin(admin.ModelAdmin):
     list_display = ("code", "used", "created_at")
     search_fields = ("code",)
 
+
+class ScoreAdmin(admin.ModelAdmin):
+    list_display = ("member", "points")
+    list_filter = ("board",)
+    search_fields = ("member__name", "board__name", "points")
+
+admin.site.site_title = _("Painel - Presença Jovens")
 admin.site.register(Code, CodeAdmin)
 admin.site.register(Member)
 admin.site.register(CheckIn, CheckInAdmin)
 admin.site.register(Scoreboard)
-admin.site.register(Score)
+admin.site.register(Score, ScoreAdmin)
 admin.site.register(Event)
 admin.site.register(TimeScoreRules, TimeScoreRulesAdmin)
