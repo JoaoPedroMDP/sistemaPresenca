@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+
 
 class Base(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -39,7 +41,7 @@ class Code(Base):
 
 class CheckIn(Base):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.member.name} - {self.date}"
