@@ -36,3 +36,5 @@ services:
 volumes:
   back_static:
     driver: local
+  db_data:
+    driver: local
