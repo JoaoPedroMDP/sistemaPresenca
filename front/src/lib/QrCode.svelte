@@ -12,9 +12,11 @@
     )
 
     onMount(() => {
+        console.log(presenceUrl);
         let qrCodeElement = document.getElementById('qrCode');
         if(qrCodeElement){
             qrCodeElement.addEventListener('codeRendered', () => {
+                console.log("Qrcode renderizado");
                 qrCodeElement.animateQRCode('RadialRipple');
             });
         }
@@ -36,6 +38,6 @@
         >
             <img src={logo} alt="Logo dos Jovens da Igreja Adventista do Sétimo dia distrito do Água Verde" slot="icon" />
         </qr-code>
-        <!-- <h1 class="text-indigo-900">{presenceUrl}</h1> -->
+        <h1 class="text-indigo-900">{presenceUrl}</h1>
     {/if}
 </div>
