@@ -33,7 +33,7 @@
 				<QrCode />
 			</div>
 		{/if}
-			
+
 		<div>
 			{#each checkInStore.members as member}
 				<p class="text-lg text-indigo-900 mt-2">{member} fez check-in!</p>

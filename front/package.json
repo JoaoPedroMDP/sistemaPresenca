@@ -28,6 +28,7 @@
 		"@fontsource-variable/readex-pro": "^5.2.11",
 		"@iconify-json/fa6-solid": "^1.2.4",
 		"@iconify/tailwind4": "^1.2.3",
+		"@svelte-put/qr": "^2.1.2",
 		"qrcode": "^1.5.4"
 	}
 }

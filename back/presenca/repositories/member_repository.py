@@ -14,5 +14,5 @@ class MemberRepository(Repository[Member]):
         today_midnight = timezone.now().replace(hour=23, minute=59, second=59, microsecond=999999)
 
         return Member.objects.all().exclude(
-            checkin__date__range=(today_00, today_midnight)
+            checkins__date__range=(today_00, today_midnight)
         )
