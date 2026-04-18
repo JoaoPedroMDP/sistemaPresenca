@@ -3,6 +3,7 @@
 
 	import favicon from '$lib/assets/jovensLogoBranca.png';
 	import type { Snippet } from 'svelte';
+	import '@fontsource-variable/readex-pro/wght.css';
 
 	interface Props {
 		children?: Snippet;

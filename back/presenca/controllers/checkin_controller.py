@@ -1,6 +1,6 @@
 from presenca.controllers.ws_controller import WsController
 from presenca.repositories.event_repository import EventRepository
-from presenca.models import Member
+from presenca.models import CheckIn, Member
 from presenca.repositories.checkin_times_repository import TimeScoreRulesRepository
 from presenca.controllers.scoreboard_controller import ScoreboardController
 from presenca.repositories.checkin_repository import CheckinRepository
@@ -18,3 +18,7 @@ class CheckinController:
         points = TimeScoreRulesRepository.get_points_for_time_in_event(SABBATH_CLASS_EVENT, checkin.date.time())
         ScoreboardController.add_points(member=member, board_name=CHECKIN_BOARD, points=points)
         return points
+
+    @staticmethod
+    def get_member_history(member: Member):
+        return CheckIn.objects.filter(member=member).order_by("-date").all()

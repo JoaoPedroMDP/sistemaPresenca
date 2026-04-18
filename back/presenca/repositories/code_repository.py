@@ -2,8 +2,11 @@ from typing import Optional
 from uuid import uuid4
 
 from presenca.models import Code, Event
+from presenca.repositories import Repository
 
-class CodeRepository:
+class CodeRepository(Repository[Code]):
+    model = Code
+
     @staticmethod
     def create(event: Event):
         new_code = Code.objects.create(code=str(uuid4()), event=event)
@@ -17,10 +20,6 @@ class CodeRepository:
             return unused[0]
 
         return None
-
-    @staticmethod
-    def get_by_code(code_str: str) -> Code:
-        return Code.objects.get(code=code_str)
 
     @staticmethod
     def mark_as_used(code: Code):

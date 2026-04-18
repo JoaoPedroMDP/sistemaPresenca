@@ -1,7 +1,7 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
 
 class Base(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -17,6 +17,7 @@ class Member(Base):
     """
     name = models.CharField(max_length=100)
     birthday = models.DateField(blank=True, null=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta: # type: ignore[misc]
         verbose_name = _("Membro")
@@ -62,7 +63,7 @@ class CheckIn(Base):
     """
         Check-in de um membro em uma data e hora específicas.
     """
-    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="checkins")
     date = models.DateTimeField(default=timezone.now)
     
     class Meta: # type: ignore[misc]

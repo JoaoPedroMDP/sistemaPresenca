@@ -67,7 +67,9 @@
             <Button disabled={!member} onclick={checkin} text="Marcar presença"/>
         </div>
     </div>
-    <span id="points" data-success={success} class="text-black text-2xl">+{pointsEarned}pts</span>
+    {#if pointsEarned && pointsEarned > 0}
+        <span id="points" data-success={success} class="text-black text-2xl">+ {pointsEarned}pts</span>
+    {/if}
 </div>
 
 <style>

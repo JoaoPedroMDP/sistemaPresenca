@@ -1,6 +1,5 @@
 from presenca.models import Event
+from presenca.repositories import Repository
 
-class EventRepository:
-    @staticmethod
-    def get(*args, **kwargs) -> Event:
-        return Event.objects.get(*args, **kwargs)
+class EventRepository(Repository[Event]):
+    model = Event

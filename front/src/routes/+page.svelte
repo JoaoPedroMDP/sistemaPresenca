@@ -25,10 +25,7 @@
 	{#if !connected}
 		<div class="flex flex-col items-center gap-4">
 			<p class="text-2xl text-indigo-900">Digite o nome do evento para gerar o QR Code</p>
-			<Text 
-				bind:value={event_name}
-				{onkeyup}
-				cls="text-indigo-900 border-2 border-emerald-400"/>
+			<Text bind:value={event_name} {onkeyup}/>
 		</div>
 	{:else}
 		{#if codeStore.code}

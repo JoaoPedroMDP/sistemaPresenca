@@ -1,16 +1,12 @@
+from django.contrib.auth.models import User
 from django.utils import timezone
 
 from presenca.models import Member
+from presenca.repositories import Repository
 
 
-class MemberRepository:
-    @staticmethod
-    def get_all():
-        return Member.objects.all()
-
-    @staticmethod
-    def get_by_id(m_id: int):
-        return Member.objects.get(id=m_id)
+class MemberRepository(Repository[Member]):
+    model = Member
 
     @staticmethod
     def didnt_checkin_today():
