@@ -23,6 +23,11 @@ services:
 
   caddy:
     image: caddy:latest
+    depends_on:
+      back:
+        condition: service_started
+      front:
+        condition: service_started
     ports:
       - "80:80"
       - "443:443"
