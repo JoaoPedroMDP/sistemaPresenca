@@ -14,7 +14,7 @@
     let member: number | null = $state(null)
 
     onMount(async ()=>{
-        const response = await fetch(`/api/members/pending/${params.code}`);
+        const response = await fetch(`/api/checkin/pending/${params.code}`);
         let parsed = await response.json();
 
         if(parsed.error){
