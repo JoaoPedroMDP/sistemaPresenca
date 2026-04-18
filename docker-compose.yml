@@ -4,7 +4,7 @@ services:
   back:
     env_file:
       - ./back/.env
-    image: sitemapresenca-back:latest
+    image: sistemapresenca-back:latest
     pull_policy: never
     # build: 
     #   context: ./back
