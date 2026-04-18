@@ -5,7 +5,7 @@ import sys
 def main(back: bool, front: bool):
     # executa docker compose build
     if back:
-        os.system("docker load < /images/ back.tar.gz")
+        os.system("docker load < /images/back.tar.gz")
 
     if front:
         os.system("docker load < /images/front.tar.gz")
