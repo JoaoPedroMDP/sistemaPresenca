@@ -1,2 +1,5 @@
 *.ipynb
 front_build/
+compose.yml
+*.tar.gz
+db.sqlite3

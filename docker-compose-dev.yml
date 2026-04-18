@@ -4,22 +4,18 @@ services:
   back:
     env_file:
       - ./back/.env
-    image: sistemapresenca-back:latest
-    pull_policy: never
-    # build: 
-    #   context: ./back
-    #   dockerfile: ../docker/Dockerfile.back
+    build: 
+      context: ./back
+      dockerfile: ../docker/Dockerfile.back
     volumes:
       - back_static:/app/staticfiles
       - ./docker/back_entrypoint.sh:/app/back_entrypoint.sh
       - ./db.sqlite3:/app/db.sqlite3
 
   front:
-    image: sistemapresenca-front:latest
-    pull_policy: never
-    # build: 
-    #   context: ./front
-    #   dockerfile: ../docker/Dockerfile.front
+    build: 
+      context: ./front
+      dockerfile: ../docker/Dockerfile.front
     volumes:
       - ./front_build:/mnt/front
     depends_on:
