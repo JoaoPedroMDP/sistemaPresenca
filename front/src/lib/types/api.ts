@@ -8,6 +8,7 @@ interface Member{
     name: string;
     birthday: string|null;
     user: User|null;
+    photo: string|null;
 }
 
 export type { Member, User };

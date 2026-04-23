@@ -1,10 +1,10 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    
     import authStore from "$lib/stores/authStore.svelte";
     import Text from "$lib/inputs/Text.svelte";
     import logo from "$lib/assets/jovensLogoAzul.png";
     import Button from "$lib/inputs/Button.svelte";
+    
     let username: string | null = $state(null);
     let password: string | null = $state(null);
     let message = $state('');
@@ -20,7 +20,9 @@
             message = results.message;
             return;
         }
-        goto('/me');
+
+        console.log("Login bem-sucedido, redirecionando para /me");
+        await goto('/me');
     }
 
     function oku_login(e: KeyboardEvent): void {

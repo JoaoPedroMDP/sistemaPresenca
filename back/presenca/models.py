@@ -18,12 +18,16 @@ class Member(Base):
     name = models.CharField(max_length=100)
     birthday = models.DateField(blank=True, null=True)
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
+    photo = models.FileField(upload_to="images/members/", blank=True, null=True)
 
     class Meta: # type: ignore[misc]
         verbose_name = _("Membro")
-    
+
     def __str__(self):
         return self.name
+    
+    def slug(self):
+        return self.name.split(' ')[0].lower().replace(" ", "_")
 
 
 class Event(Base):
@@ -97,6 +101,7 @@ class Score(Base):
     
     class Meta: # type: ignore[misc]
         verbose_name = _("Score")
+        unique_together = ("board", "member")
     
     def __str__(self):
         return f"{self.member.name} - {self.points} pontos"
@@ -129,4 +134,3 @@ class TimeScoreRules(Base):
 
     def __str__(self):
         return f"{self.event.name} {self.start_time} - {self.end_time}: {self.points} pontos."
-

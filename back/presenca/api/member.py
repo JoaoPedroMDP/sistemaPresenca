@@ -19,6 +19,7 @@ class MeResponse(Schema):
     birthday: date
     name: str
     user: MeUserResponse
+    photo: str | None
 
 @member_router.get("/me", auth=SessionAuth(), response=MeResponse)
 def me(request):

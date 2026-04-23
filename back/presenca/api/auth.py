@@ -3,6 +3,7 @@ import logging
 from django.core.handlers.asgi import ASGIRequest
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from ninja import Router, Schema
+from ninja.security import SessionAuth
 
 
 login_router = Router()
@@ -27,10 +28,11 @@ def login(request: ASGIRequest, data: LoginSchema):
     else:
         return {"error_code": 401, "error": "Credenciais inválidas."}
 
-@login_router.get("/logout")
+@login_router.get("/logout", auth=SessionAuth())
 def logout(request: ASGIRequest):
-    if request.user.is_authenticated:
-        auth_logout(request)
-        return {"message": "Logout bem-sucedido."}
-    else:
-        return {"error_code": 400, "error": "Nenhum usuário logado."}
+    auth_logout(request)
+    return {"message": "Logout bem-sucedido."}
+
+@login_router.get("/logged", auth=SessionAuth())
+def logged(request: ASGIRequest):
+    return 200, {"logged": True, "username": request.user.username}

@@ -1,15 +1,15 @@
 <script lang="ts">
     import type { Member } from "$lib/types/api";
     import { onMount } from "svelte";
-    import authStore from "$lib/stores/authStore.svelte";
+    import memberStore from "$lib/stores/memberStore.svelte";
     let member: Member|null = $state(null);
     let checkinHistory: { date: string }[] = $state([]);
 
     let message = $state('');
 
     onMount(async () => {
-        console.log(authStore.logged)
-        member = await authStore.getMember();
+        console.log("Carregando dados do membro...");
+        member = await memberStore.getMember();
     });
 
     async function getHistory(){

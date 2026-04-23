@@ -20,13 +20,13 @@ class HasMemberList(admin.ModelAdmin):
 
 
 class CheckInAdmin(HasMemberList):
-    list_display = ("Nome", "Data")
+    list_display = ("name", "date")
     list_filter = ("date",)
     search_fields = ("member__name", "Data")
     ordering = ("-date",)
 
     @admin.display(description="Data")
-    def Data(self, obj):
+    def date(self, obj):
         if not obj.date:
             return ""
         
@@ -34,21 +34,21 @@ class CheckInAdmin(HasMemberList):
         return localize(dt_local, use_l10n=True)
 
     @admin.display(description="Nome")
-    def Nome(self, obj):
+    def name(self, obj):
         return obj.member.name
 
 
 class TimeScoreRulesAdmin(admin.ModelAdmin):
-    list_display = ('event', 'Inicio', 'Fim', 'points')
+    list_display = ('event', 'start_time', 'end_time', 'points')
     list_filter = ('event',)
     search_fields = ('event__name',)
 
     @admin.display(description="Inicio")
-    def Inicio(self, obj):
+    def start_time(self, obj):
         return obj.start_time.strftime("%H:%M:%S")
 
     @admin.display(description="Fim")
-    def Fim(self, obj):
+    def end_time(self, obj):
         return obj.end_time.strftime("%H:%M:%S")
 
 
