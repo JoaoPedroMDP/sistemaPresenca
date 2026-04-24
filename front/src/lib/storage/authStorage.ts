@@ -22,7 +22,7 @@ function LSLoadAuth(): Auth | null {
 }
 
 function LSSaveAuth(auth: Auth): void {
-    let expiresAt = new Date(new Date().getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(); // Expira em 1 dia
+    let expiresAt = new Date(new Date().getTime() + 5 * 60 * 1000).toISOString(); // Expira em 5 minutos
     let authData: AuthT = {
         version: VERSION,
         expiresAt: expiresAt,

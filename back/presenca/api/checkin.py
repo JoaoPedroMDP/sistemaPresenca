@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from typing import List
+from typing import List, Optional
 
 from ninja import Router, Schema
 from ninja.security import SessionAuth
@@ -9,8 +9,7 @@ from presenca.controllers.checkin_controller import CheckinController
 from presenca.controllers.code_controller import CodeController
 from presenca.controllers.ws_controller import WsController
 from presenca.errors import UsedCodeError
-from presenca.model_schemas import CheckinSchema
-from presenca.models import CheckIn, Code
+from presenca.models import Code
 from presenca.repositories.code_repository import CodeRepository
 from presenca.repositories.member_repository import MemberRepository
 
@@ -42,6 +41,7 @@ def get_pending_members(request, code_str: str):
 
     return {"members": membs}
 
+
 @checkin_router.post("/{code_str}/{m_id}")
 def checkin(request, code_str: str, m_id: int):
     lgr.info(f"Check-in with code: {code_str} and member ID: {m_id}")
@@ -66,9 +66,8 @@ def checkin(request, code_str: str, m_id: int):
     return {"message": f"Presença marcada!", "points": points}
 
 
-
 class HistoryCheckinResponse(Schema):
-    date: datetime
+    date: Optional[datetime]
 
 @checkin_router.get("/history", auth=SessionAuth(), response=List[HistoryCheckinResponse])
 def get_history(request):

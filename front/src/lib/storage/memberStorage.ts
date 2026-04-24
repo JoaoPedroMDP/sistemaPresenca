@@ -1,11 +1,11 @@
-import type { Member } from "$lib/types/api";
+import type { memberI } from "$lib/types/api";
 import { loadFromLS, saveToLS, type StoredDataT } from ".";
 
 const KEY = 'member';
 const VERSION = 1;
 
 interface MemberT extends StoredDataT {
-    data: Member | null;
+    data: memberI | null;
 }
 
 const DEFAULTS: MemberT = {
@@ -14,12 +14,12 @@ const DEFAULTS: MemberT = {
     data: null
 };
 
-function LSLoadMember(): Member | null {
+function LSLoadMember(): memberI | null {
     return loadFromLS(KEY, VERSION, DEFAULTS).data;
 }
 
-function LSSaveMember(member: Member): void {
-    let expiresAt = new Date(new Date().getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(); // Expira em 1 dia
+function LSSaveMember(member: memberI): void {
+    let expiresAt = new Date(new Date().getTime() + 5 * 60 * 1000).toISOString(); // Expira em 5 minutos
     let memberData: MemberT = {
         version: VERSION,
         expiresAt: expiresAt,
@@ -28,5 +28,9 @@ function LSSaveMember(member: Member): void {
     saveToLS(memberData, KEY);
 }
 
-export { LSLoadMember, LSSaveMember };
+function LSClearMember(): void {
+    localStorage.removeItem(KEY);
+}
+
+export { LSLoadMember, LSSaveMember, LSClearMember };
 export type { MemberT };

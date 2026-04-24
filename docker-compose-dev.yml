@@ -1,5 +1,3 @@
-
-
 services:
   back:
     env_file:
@@ -11,6 +9,9 @@ services:
       - back_static:/app/staticfiles
       - ./docker/back_entrypoint.sh:/app/back_entrypoint.sh
       - ./db.sqlite3:/app/db.sqlite3
+      - ./back/media:/app/media
+    environment:
+      - UV_PROJECT_ENVIRONMENT=/app/.venv
 
   front:
     build: 
@@ -36,6 +37,7 @@ services:
     volumes:
       - ./docker/Caddyfile:/etc/caddy/Caddyfile
       - back_static:/app/staticfiles
+      - ./back/media:/app/media
       - ./front_build:/app/front
 
 volumes:

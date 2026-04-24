@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+import unidecode
 
 class Base(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,7 +28,7 @@ class Member(Base):
         return self.name
     
     def slug(self):
-        return self.name.split(' ')[0].lower().replace(" ", "_")
+        return unidecode.unidecode(self.name.split(' ')[0].lower().replace(" ", "_"))
 
 
 class Event(Base):

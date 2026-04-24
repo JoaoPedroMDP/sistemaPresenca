@@ -11,7 +11,8 @@
 	const props: Props = $props();
 
     $effect(() => {
-        if(!authStore.auth?.loggedAt){
+        authStore.loginTrigger;
+        if(!authStore.isLogged()){
             console.warn("Usuário não autenticado, redirecionando para login");
             goto('/login');
             return;

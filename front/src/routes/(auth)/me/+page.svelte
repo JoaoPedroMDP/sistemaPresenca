@@ -2,6 +2,8 @@
     import type { Member } from "$lib/types/api";
     import { onMount } from "svelte";
     import memberStore from "$lib/stores/memberStore.svelte";
+    import photoPlaceholder from "$lib/assets/profileAzul.png";
+
     let member: Member|null = $state(null);
     let checkinHistory: { date: string }[] = $state([]);
 
@@ -33,12 +35,19 @@
     });
 </script>
 
-<div class="flex flex-col h-dvh justify-center items-center px-100">
+<div class="flex flex-col h-dvh justify-center items-center px-10">
     <span class="text-black text-2xl">{message}</span>
     {#if member}
-        <div class="flex flex-col gap-4 rounded-xl p-4  ring-1 ring-indigo-900 shadow-xl w-full">
-            <div class="flex">
-                <h1 class="text-black text-2xl">{member.name}</h1>
+        <div class="flex flex-col gap-4 rounded-xl p-4 items-center ring-1 ring-indigo-900 shadow-xl w-full">
+            <div class="flex items-center justify-between w-full">
+                <img 
+                    width="100" height="100" 
+                    src={member.photo || photoPlaceholder} 
+                    alt={`Foto de perfil de ${member.name}`}
+                    class="border-2 border-indigo-900 rounded-full object-cover"
+                />
+
+                <h1 class="text-black text-3xl text-right">{member.name}</h1>
             </div>
             <div class="flex items-center text-black text-2xl gap-4">
                 <span class="icon-[fa6-solid--cake-candles]"></span>
@@ -52,7 +61,7 @@
                 {#each checkinHistory as checkin}
                     <span class="text-black">{
                         new Date(checkin.date).toLocaleString(
-                            "pt-BR", 
+                            "pt-BR",
                             { dateStyle: 'short', timeStyle: 'short' }
                         )
                     }</span>

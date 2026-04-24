@@ -6,7 +6,7 @@ interface StoredDataT {
     data: any | null;
 }
 
-function loadFromLS(key: string, version: number, defaults: StoredDataT) {
+function loadFromLS(key: string, version: number, defaults: StoredDataT): StoredDataT {
     let parsed: StoredDataT = structuredClone(defaults);
     try{
         const raw = localStorage.getItem(key);
@@ -31,7 +31,6 @@ function loadFromLS(key: string, version: number, defaults: StoredDataT) {
 }
 
 function saveToLS(data: StoredDataT, key: string) {
-    data.expiresAt = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(); // Expira em 7 dias
     try{
         localStorage.setItem(key, JSON.stringify(data));
     }catch(e){

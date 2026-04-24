@@ -1,5 +1,6 @@
 from datetime import date
 import logging
+from typing import Optional
 
 from ninja import Router, Schema
 from ninja.security import SessionAuth
@@ -16,7 +17,7 @@ class MeUserResponse(Schema):
 
 class MeResponse(Schema):
     id: int
-    birthday: date
+    birthday: Optional[date]
     name: str
     user: MeUserResponse
     photo: str | None

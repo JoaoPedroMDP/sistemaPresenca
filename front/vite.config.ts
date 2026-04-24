@@ -6,6 +6,10 @@ export default defineConfig({
     plugins: [tailwindcss(), sveltekit()],
     server: {
         proxy: {
+            '/media': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+            },
             '/api': {
                 target: 'http://localhost:8000',
                 changeOrigin: true,

@@ -1,9 +1,10 @@
+import { callMe } from "$lib/api/memberApi.svelte";
 import { LSLoadMember, LSSaveMember } from "$lib/storage/memberStorage";
-import type { Member } from "$lib/types/api";
+import { Member, type memberI } from "$lib/types/api";
 
 interface MemberStore {
-    member: Member | null;
-    getMember(): Promise<Member | null>;
+    member: memberI | null;
+    getMember(): Promise<memberI | null>;
 }
 
 const store: MemberStore = $state<MemberStore>({
@@ -11,14 +12,20 @@ const store: MemberStore = $state<MemberStore>({
     async getMember() {
         if(!store.member) {
             console.log("Buscando membro na API");
-            let response = await fetch('api/member/me');
-            if(!response.ok && response.status == 401){
-                console.log(response.statusText);
+            let response = await callMe();
+            if(!response.success){
+                console.log(response.message);
                 return null;
             }
-            let memberData = await response.json();
-            store.member = memberData;
-            LSSaveMember(memberData);
+
+            let member = Member.fromJson(response.data);
+            if(member !== undefined && typeof member === "object"){
+                store.member = member;
+                LSSaveMember(member);
+            }else{
+                console.log("Resposta da API não contém dados de membro");
+                console.log("Resposta completa:", response);
+            }
         }
 
         return store.member;
