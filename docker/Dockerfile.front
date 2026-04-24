@@ -9,6 +9,10 @@ COPY . .
 RUN bun run build
 
 FROM alpine:latest
+
+ARG APP_VERSION=DEV
+ENV APP_VERSION=${APP_VERSION}
+
 COPY --from=build /app/build /app/front
 RUN ls -la /app/front
 CMD ["sh", "-c", "cp -rf /app/front/. /mnt/front/ && tail -f /dev/null"]

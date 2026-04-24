@@ -4,8 +4,9 @@
 	import favicon from '$lib/assets/jovensLogoBranca.png';
 	import type { Snippet } from 'svelte';
 	import '@fontsource-variable/readex-pro/wght.css';
-    import { LSClearAuth } from '$lib/storage/authStorage';
     import { LSClearMember } from '$lib/storage/memberStorage';
+
+	const version = __APP_VERSION__;
 
 	interface Props {
 		children?: Snippet;
@@ -31,10 +32,13 @@
 	<title>Jovens AV</title>
 </svelte:head>
 
-{@render props.children?.()}
-{#if import.meta.env.MODE == 'development'}
-<div class="absolute top-12 right-0 flex flex-col gap-4">
-	<button onclick={clearAllStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage (+auth)</button>
-	<button onclick={clearStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage</button>
+<div>
+	{@render props.children?.()}
+	{#if import.meta.env.MODE == 'development'}
+		<div class="absolute top-12 right-0 flex flex-col gap-4">
+			<button onclick={clearAllStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage (+auth)</button>
+			<button onclick={clearStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage</button>
+		</div>
+	{/if}
+	<span class="absolute bottom-1 right-1 text-indigo-950">v{version}</span>
 </div>
-{/if}

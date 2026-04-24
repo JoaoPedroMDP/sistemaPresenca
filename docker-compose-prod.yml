@@ -11,6 +11,7 @@ services:
       - ./back/media:/app/media
     environment:
       - UV_PROJECT_ENVIRONMENT=/app/.venv
+      - APP_VERSION=${APP_VERSION}
 
   front:
     image: sistemapresenca-front:latest
@@ -19,6 +20,9 @@ services:
       - ./front_build:/mnt/front
     depends_on:
       - back
+    environment:
+      - APP_VERSION=${APP_VERSION}
+
 
   caddy:
     image: caddy:latest

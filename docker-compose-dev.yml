@@ -12,15 +12,20 @@ services:
       - ./back/media:/app/media
     environment:
       - UV_PROJECT_ENVIRONMENT=/app/.venv
+      - APP_VERSION=${APP_VERSION}
 
   front:
     build: 
       context: ./front
       dockerfile: ../docker/Dockerfile.front
+      args:
+        - APP_VERSION=${APP_VERSION}
     volumes:
       - ./front_build:/mnt/front
     depends_on:
       - back
+    environment:
+      - APP_VERSION=${APP_VERSION}
 
   caddy:
     image: caddy:latest
