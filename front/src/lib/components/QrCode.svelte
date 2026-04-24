@@ -10,11 +10,12 @@
     )
 </script>
 
-<div class="w-full">
+<div class="flex flex-col items-center overflow-hidden">
     {#if !presenceUrl}
         <p>Aguardando código...</p>
     {:else}
         <svg
+            class="backdrop-blur-xl rounded-2xl"
             use:qr={{
                 data: presenceUrl,
                 logo: logo,
@@ -25,6 +26,8 @@
             width="300"
             height="300"
         />
-        <h1 class="text-white">{presenceUrl}</h1>
+        {#if import.meta.env.MODE == 'development'}
+            <h1 class="text-blue-300">{presenceUrl}</h1>
+        {/if}
     {/if}
 </div>

@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { initSocket } from '$lib/websocket/socket';
-	import QrCode from "$lib/QrCode.svelte";
+	import QrCode from "$lib/components/QrCode.svelte";
 	import codeStore from "$lib/stores/codeStore.svelte";
-	import checkInStore from "$lib/stores/checkinStore.svelte";
 	import "$lib/websocket/socket";
     import Text from '$lib/inputs/Text.svelte';
+    import Phloating from '$lib/components/Phloating.svelte';
+    import type { PhloatingHandlers } from '$lib/components/Phloating.svelte';
+	import checkinStore, { type MemberCheckin } from '$lib/stores/checkinStore.svelte';
 
 	let connected: boolean = $state(false);
 	let event_name: string = $state('Escola Sabatina');
+
+	let phloating: PhloatingHandlers | null = $state(null); 
 
 	async function enterGroup(group_name: string) : Promise<void> {
 		connected = await initSocket(group_name);
@@ -19,6 +23,16 @@
 			await enterGroup(event_name);
 		}
 	}
+
+	function memberCheckin(member: MemberCheckin) {
+		if(!phloating){
+			console.log("Phloating component not initialized yet");
+			return;
+		}
+		phloating.addPhoto({id: member.name, name: member.name, src: member.photo});
+	}
+
+	checkinStore.registerObserver(memberCheckin);
 </script>
 
 <div class="flex flex-row items-center justify-center h-dvh gap-8 text-black">
@@ -29,15 +43,13 @@
 		</div>
 	{:else}
 		{#if codeStore.code}
-			<div class="flex justify-center items-center">
+			<div class="absolute flex justify-center items-center w-min z-10">
 				<QrCode />
 			</div>
 		{/if}
 
 		<div>
-			{#each checkInStore.members as member}
-				<p class="text-lg text-indigo-900 mt-2">{member} fez check-in!</p>
-			{/each}
+			<Phloating bind:this={phloating}/>
 		</div>
 	{/if}
 </div>

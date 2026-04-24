@@ -42,6 +42,9 @@ class WsController:
             event.as_websocket_group_name(),
             {
                 "type": "memberCheckin",
-                "member": member.name
+                "member": {
+                    "name": member.name,
+                    "photo": member.photo.url if member.photo else None
+                }
             }
         )

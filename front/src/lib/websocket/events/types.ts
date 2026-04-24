@@ -1,3 +1,5 @@
+import type { Member } from "$lib/types/api";
+
 export enum SocketEventList {
     CHECKIN = 'memberCheckin',
     NEW_CODE = 'newCode'
@@ -13,7 +15,7 @@ interface NewCodePayload extends RawPayload {
 }
 
 interface CheckinPayload extends RawPayload {
-    member: string;
+    member: Member;
 }
 
 export type { RawPayload, NewCodePayload, CheckinPayload };
