@@ -18,6 +18,14 @@ interface Params {
     init?: RequestInit;
     ensureLogin?: boolean;
 }
+
+function getCsrfToken(): string {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1] ?? '';
+}
+
 async function callFetch({ input, init, ensureLogin = true }: Params): Promise<Response> {
     try {
         let response = await fetch(input, init);
@@ -35,4 +43,4 @@ async function callFetch({ input, init, ensureLogin = true }: Params): Promise<R
 }
 
 export default ApiResponse;
-export { callFetch };
+export { callFetch, getCsrfToken };

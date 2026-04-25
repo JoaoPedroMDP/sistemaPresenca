@@ -30,3 +30,16 @@ def me(request):
         return {"error_code": 404, "error": "Membro não encontrado no banco..."}
 
     return member
+
+@member_router.post("/photo", auth=SessionAuth(), response=MeResponse)
+def set_photo(request):
+    member = MemberRepository.get(user=request.user)
+
+    if not member:
+        return {"error_code": 404, "error": "Membro não encontrado no banco..."}
+    
+    photo = request.FILES.get("photo")
+    member.photo.save(member.slug() + "_profile", photo)
+    member.save()
+
+    return member

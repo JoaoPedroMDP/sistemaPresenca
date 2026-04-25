@@ -2,31 +2,27 @@
     import type { Member } from "$lib/types/api";
     import { onMount } from "svelte";
     import memberStore from "$lib/stores/memberStore.svelte";
-    import photoPlaceholder from "$lib/assets/profileAzul.png";
+    import PhotoSelector from "$lib/components/PhotoSelector.svelte";
 
-    let member: Member|null = $state(null);
+    let member: Member | null = $state(null);
     let checkinHistory: { date: string }[] = $state([]);
-
     let message = $state('');
 
     onMount(async () => {
-        console.log("Carregando dados do membro...");
         member = await memberStore.getMember();
     });
 
-    async function getHistory(){
+    async function getHistory() {
         let response = await fetch('api/checkin/history');
-        if(!response.ok){
+        if (!response.ok) {
             message = response.statusText;
             return;
         }
-
-        let data = await response.json();
-        checkinHistory = data;
+        checkinHistory = await response.json();
     }
 
     $effect(() => {
-        if(member){
+        if (member) {
             document.title = `Perfil - ${member.name}`;
             getHistory();
         } else {
@@ -39,15 +35,13 @@
     <span class="text-black text-2xl">{message}</span>
     {#if member}
         <div class="flex flex-col gap-4 rounded-xl p-4 items-center ring-1 ring-indigo-900 shadow-xl w-full">
-            <div class="flex items-center justify-between w-full">
-                <img 
-                    width="100" height="100" 
-                    src={member.photo || photoPlaceholder} 
+            <div class="flex flex-col items-center justify-between w-full">
+                <PhotoSelector
+                    bind:src={member.photo}
                     alt={`Foto de perfil de ${member.name}`}
-                    class="border-2 border-indigo-900 rounded-full object-cover"
+                    onerror={(msg) => (message = msg)}
                 />
-
-                <h1 class="text-black text-3xl text-right">{member.name}</h1>
+                <h1 class="text-black text-2xl text-center">{member.name}</h1>
             </div>
             <div class="flex items-center text-black text-2xl gap-4">
                 <span class="icon-[fa6-solid--cake-candles]"></span>
