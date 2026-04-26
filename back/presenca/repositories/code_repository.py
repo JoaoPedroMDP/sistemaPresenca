@@ -1,6 +1,8 @@
 from typing import Optional
 from uuid import uuid4
 
+from django.utils import timezone
+
 from presenca.models import Code, Event
 from presenca.repositories import Repository
 
@@ -14,7 +16,7 @@ class CodeRepository(Repository[Code]):
 
     @staticmethod
     def get_unused_code(event: Event) -> Optional[Code]:
-        unused = Code.objects.filter(used=False, event=event)
+        unused = Code.objects.filter(used__isnull=True, event=event)
 
         if len(unused) > 0:
             return unused[0]
@@ -23,7 +25,7 @@ class CodeRepository(Repository[Code]):
 
     @staticmethod
     def mark_as_used(code: Code):
-        code.used = True
+        code.used = timezone.now()
         code.save()
 
     @staticmethod

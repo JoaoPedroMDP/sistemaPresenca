@@ -19,13 +19,11 @@ services:
       context: ./front
       dockerfile: ../docker/Dockerfile.front
       args:
-        - APP_VERSION=${APP_VERSION}
+        - VITE_APP_VERSION=${APP_VERSION}
     volumes:
       - ./front_build:/mnt/front
     depends_on:
       - back
-    environment:
-      - APP_VERSION=${APP_VERSION}
 
   caddy:
     image: caddy:latest

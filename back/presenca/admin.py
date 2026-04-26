@@ -20,9 +20,9 @@ class HasMemberList(admin.ModelAdmin):
 
 
 class CheckInAdmin(HasMemberList):
-    list_display = ("name", "date")
-    list_filter = ("date",)
-    search_fields = ("member__name", "Data")
+    list_display = ("name", "date", "event")
+    list_filter = ("date", "event")
+    search_fields = ("member__name", "date", "event__name")
     ordering = ("-date",)
 
     @admin.display(description="Data")
@@ -30,7 +30,7 @@ class CheckInAdmin(HasMemberList):
         if not obj.date:
             return ""
         
-        dt_local = timezone.localtime(obj.date)  # ou timezone.template_localtime(obj.date)
+        dt_local = timezone.localtime(obj.date)
         return localize(dt_local, use_l10n=True)
 
     @admin.display(description="Nome")

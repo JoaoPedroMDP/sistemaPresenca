@@ -12,7 +12,7 @@
 
     $effect(() => {
         authStore.loginTrigger;
-        if(!authStore.isLogged()){
+        if(!authStore.getLoggedFromServer()){
             console.warn("Usuário não autenticado, redirecionando para login");
             goto('/login');
             return;

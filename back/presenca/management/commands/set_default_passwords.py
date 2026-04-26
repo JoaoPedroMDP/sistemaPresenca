@@ -20,6 +20,7 @@ def fix_passwords(UserModel):
     for user in users_without_password:
         if user.member is None:
             continue
+        lgr.info(f"Criando senha para usuário: {user.username}")
 
         m: Member = user.member
         suffix = m.name.split()[-1].lower()

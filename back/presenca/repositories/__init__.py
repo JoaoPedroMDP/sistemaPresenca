@@ -16,3 +16,7 @@ class Repository[T: models.Model]:
     @classmethod
     def get_all(cls) -> models.QuerySet[T]:
         return cls.model.objects.all()
+
+    @classmethod
+    def filter(cls, *args, **kwargs) -> models.QuerySet[T]:
+        return cls.model.objects.filter(*args, **kwargs)

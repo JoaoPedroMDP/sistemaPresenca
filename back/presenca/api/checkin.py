@@ -54,13 +54,20 @@ def checkin(request, code_str: str, m_id: int):
     if not code:
         return {"error_code": 404, "error": "Código não encontrado no banco..."}
 
+    if not code.used:
+        lgr.warning(f"Código {code_str} não foi marcado como usado, mas chegou na rota de checkin.")
+        return {
+            "error_code": 400,
+            "error": "Problema com o código. Escaneie o QR code novamente.",
+        }
+
     if code.used_by and code.used_by != member:
         return {
             "error_code": 400,
             "error": "Este código já foi usado por outro membro. Escaneie o QR code novamente.",
         }
 
-    points = CheckinController.checkin_sabbath(member)
+    points = CheckinController.checkin_sabbath(member, code.used)
     CodeRepository.assign_member(code, member)
 
     return {"message": f"Presença marcada!", "points": points}

@@ -31,6 +31,7 @@ async function callFetch({ input, init, ensureLogin = true }: Params): Promise<R
         let response = await fetch(input, init);
 
         if (!response.ok && response.status == 401 && ensureLogin) {
+            console.log("Usuário não autenticado. Redirecionando para login...");
             authStore.triggerLogin();
         }
 

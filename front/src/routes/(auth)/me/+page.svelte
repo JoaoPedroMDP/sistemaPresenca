@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import memberStore from "$lib/stores/memberStore.svelte";
     import PhotoSelector from "$lib/components/PhotoSelector.svelte";
+    import { formatDateInUTC } from "$lib/dateUtils";
 
     let member: Member | null = $state(null);
     let checkinHistory: { date: string }[] = $state([]);
@@ -45,7 +46,7 @@
             </div>
             <div class="flex items-center text-black text-2xl gap-4">
                 <span class="icon-[fa6-solid--cake-candles]"></span>
-                <span class="leading-none">{new Date(member.birthday ?? new Date()).toLocaleDateString()}</span>
+                <span class="leading-none">{formatDateInUTC(member.birthday)}</span>
             </div>
             <span class="text-gray-500 text-sm">{member.user?.username}</span>
         </div>

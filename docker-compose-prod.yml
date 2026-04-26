@@ -20,8 +20,6 @@ services:
       - ./front_build:/mnt/front
     depends_on:
       - back
-    environment:
-      - APP_VERSION=${APP_VERSION}
 
 
   caddy:

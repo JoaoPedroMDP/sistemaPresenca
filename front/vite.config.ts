@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     plugins: [tailwindcss(), sveltekit()],
     define: {
-        __APP_VERSION__: JSON.stringify(process.env.APP_VERSION ?? 'dev')
+        __APP_VERSION__: JSON.stringify(process.env.VITE_APP_VERSION ?? 'dev')
     },
     server: {
         proxy: {

@@ -32,4 +32,18 @@ async function callLogin(username: string, password: string): Promise<ApiRespons
     }
     return new ApiResponse(true, "Login successful", data);
 }
-export { callLogout, callLogin };
+
+
+async function callLogged(): Promise<ApiResponse> {
+    let response = await callFetch({
+        input: "/api/auth/logged"
+    });
+
+    if(!response.ok){
+        console.log("Usuário não está logado:", response.status, response.statusText);
+        return new ApiResponse(false, response.statusText);
+    }
+    return new ApiResponse(true, "Usuário está logado", await response.json());
+
+}
+export { callLogout, callLogin, callLogged };

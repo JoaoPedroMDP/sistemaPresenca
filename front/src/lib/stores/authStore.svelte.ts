@@ -1,4 +1,4 @@
-import { callLogin, callLogout } from "$lib/api/authApi.svelte";
+import { callLogged, callLogin, callLogout } from "$lib/api/authApi.svelte";
 import type ApiResponse from "$lib/api/index.svelte";
 import { LSLoadAuth, LSSaveAuth, LSClearAuth, type Auth } from "$lib/storage/authStorage";
 
@@ -10,6 +10,7 @@ interface AuthStoreT {
     login(username: string, password: string): Promise<{success: boolean, message: string}>;
     logout(): Promise<void>;
     isLogged(): boolean;
+    getLoggedFromServer(): Promise<boolean>;
     triggerLogin(): void;
 }
 
@@ -49,6 +50,21 @@ const store: AuthStoreT = $state<AuthStoreT>({
             return true;
         }
         return false;
+    },
+    async getLoggedFromServer(): Promise<boolean> {
+        let response = await callLogged();
+        if(!response.success){
+            LSClearAuth();
+            store.auth = null;
+            return false;
+        }
+
+        let authData: Auth = {
+            loggedAt: new Date().toISOString()
+        };
+        store.auth = authData;
+        LSSaveAuth(authData);
+        return true;
     },
     triggerLogin(): void {
         let now = new Date();
