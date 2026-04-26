@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 
 from presenca.controllers.ws_controller import WsController
 from presenca.repositories.event_repository import EventRepository
@@ -9,6 +10,8 @@ from presenca.repositories.checkin_repository import CheckinRepository
 
 CHECKIN_BOARD = "Presença"
 SABBATH_CLASS_EVENT = "Escola Sabatina"
+
+lgr = logging.getLogger(__name__)
 
 class CheckinController:
     @classmethod
@@ -26,5 +29,6 @@ class CheckinController:
         WsController.send_member_checkin_for_event(member, event)
 
         points = TimeScoreRulesRepository.get_points_for_time_in_event(event, checkin_time)
+        lgr.info(f"{member.name} ganhou {points}pts para checkin às {checkin_time} no evento {event.name}")
         ScoreboardController.add_points(member=member, board_name=CHECKIN_BOARD, points=points)
         return points

@@ -18,11 +18,11 @@ if __name__ == "__main__":
     back = False
     front = False
     # Instruções de uso
-    print("Uso: python loadimage.py [back] [front]")
-    print("Exemplo: python loadimage.py back front")
 
     # Verifica os argumentos
     if len(sys.argv) < 2:
+        print("Uso: python loadimage.py [back] [front]")
+        print("Exemplo: python loadimage.py back front")
         print("Erro: É necessário especificar pelo menos um dos argumentos 'back' ou 'front'.")
         sys.exit(1)
     
