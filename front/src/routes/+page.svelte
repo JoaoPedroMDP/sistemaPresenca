@@ -43,13 +43,13 @@
 		</div>
 	{:else}
 		{#if codeStore.code}
-			<div class="absolute flex justify-center items-center w-min z-10">
+		<div class="flex flex-col items-center gap-4">
+			<h1 class="text-4xl text-indigo-900 z-10">Registre sua presença!!</h1>
+			<div class="relative flex justify-center items-center w-min z-10">
 				<QrCode />
 			</div>
-		{/if}
-
-		<div>
 			<Phloating bind:this={phloating}/>
 		</div>
+		{/if}
 	{/if}
 </div>
