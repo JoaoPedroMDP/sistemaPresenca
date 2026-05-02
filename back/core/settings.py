@@ -133,7 +133,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/presenca.log',
+            'filename': BASE_DIR / 'presenca.log',
             'formatter': 'default',
         }
     },
