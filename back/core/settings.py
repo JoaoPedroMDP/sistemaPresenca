@@ -122,14 +122,24 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s'
+        }
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
         },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/presenca.log',
+            'formatter': 'default',
+        }
     },
     'loggers': {
         'presenca': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': True,
         },
