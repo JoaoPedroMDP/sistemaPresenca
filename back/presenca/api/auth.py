@@ -15,6 +15,7 @@ class LoginSchema(Schema):
 
 @login_router.post("/login")
 def login(request: ASGIRequest, data: LoginSchema):
+    lgr.info(f"/auth/login - INICIO")
     username = data.username
     password = data.password
 
@@ -24,15 +25,30 @@ def login(request: ASGIRequest, data: LoginSchema):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         auth_login(request, user)
-        return {"message": "Login bem-sucedido."}
+        lgr.info(f"Usuário '{username}' logado com sucesso.")
+        return_data = {"message": "Login bem-sucedido."}
     else:
-        return {"error_code": 401, "error": "Credenciais inválidas."}
+        lgr.info(f"Falha de login para usuário '{username}'. Credenciais inválidas.")
+        return_data = {"error_code": 401, "error": "Credenciais inválidas."}
+
+    lgr.info(f"/auth/login - FIM")
+    return return_data
 
 @login_router.get("/logout", auth=SessionAuth())
 def logout(request: ASGIRequest):
+    lgr.info(f"/auth/logout - INICIO")
+    lgr.info(f"Usuário '{request.user.username}' solicitou logout.")
+
     auth_logout(request)
+
+    lgr.info(f"Usuário '{request.user.username}' deslogado com sucesso.")
+    lgr.info(f"/auth/logout - FIM")
+
     return {"message": "Logout bem-sucedido."}
 
 @login_router.get("/logged", auth=SessionAuth())
 def logged(request: ASGIRequest):
+    lgr.info(f"/auth/logged - INICIO")
+    lgr.info(f"Verificando status de login do usuário '{request.user.username}'.")
+    lgr.info(f"/auth/logged - FIM")
     return 200, {"logged": True, "username": request.user.username}

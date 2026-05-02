@@ -11,9 +11,11 @@ from presenca.repositories.member_repository import MemberRepository
 member_router = Router()
 lgr = logging.getLogger(__name__)
 
+
 class MeUserResponse(Schema):
     id: int
     email: str
+
 
 class MeResponse(Schema):
     id: int
@@ -22,24 +24,35 @@ class MeResponse(Schema):
     user: MeUserResponse
     photo: str | None
 
+
 @member_router.get("/me", auth=SessionAuth(), response=MeResponse)
 def me(request):
+    lgr.info(f"/member/me - INICIO")
     member = MemberRepository.get(user=request.user)
 
     if not member:
-        return {"error_code": 404, "error": "Membro não encontrado no banco..."}
+        lgr.info(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
+        return_data = {"error_code": 404, "error": "Membro não encontrado no banco..."}
+    else:
+        return_data = member
 
-    return member
+    lgr.info(f"/member/me - FIM")
+    return return_data
+
 
 @member_router.post("/photo", auth=SessionAuth(), response=MeResponse)
 def set_photo(request):
+    lgr.info(f"/member/photo - INICIO")
     member = MemberRepository.get(user=request.user)
 
     if not member:
+        lgr.info(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
+        lgr.info(f"/member/photo - FIM")
         return {"error_code": 404, "error": "Membro não encontrado no banco..."}
     
     photo = request.FILES.get("photo")
     member.photo.save(member.slug() + "_profile", photo)
     member.save()
 
+    lgr.info(f"/member/photo - FIM")
     return member
