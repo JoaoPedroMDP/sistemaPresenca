@@ -10,6 +10,7 @@ services:
       - ./docker/back_entrypoint.sh:/app/back_entrypoint.sh
       - ./db.sqlite3:/app/db.sqlite3
       - ./back/media:/app/media
+      - ./back/logs:/app/logs
     environment:
       - UV_PROJECT_ENVIRONMENT=/app/.venv
       - APP_VERSION=${APP_VERSION}
