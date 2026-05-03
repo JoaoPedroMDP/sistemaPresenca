@@ -30,5 +30,8 @@ class CheckinController:
 
         points = TimeScoreRulesRepository.get_points_for_time_in_event(event, checkin_time)
         lgr.info(f"{member.name} ganhou {points}pts para checkin às {checkin_time} no evento {event.name}")
-        ScoreboardController.add_points(member=member, board_name=CHECKIN_BOARD, points=points)
         return points
+
+    @staticmethod
+    def get_checkins_for_event_member(event: Event, member: Member):
+        return CheckIn.objects.filter(event=event, member=member).order_by("-date").all()
