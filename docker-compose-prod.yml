@@ -21,7 +21,6 @@ services:
     depends_on:
       - back
 
-
   caddy:
     image: caddy:latest
     depends_on:

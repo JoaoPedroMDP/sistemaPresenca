@@ -30,11 +30,9 @@ const store: AuthStoreT = $state<AuthStoreT>({
         return response;
     },
     async logout() {
-        let response = await callLogout();
-        if(response.success){
-            LSClearAuth();
-            store.auth = null;
-        }
+        await callLogout();
+        LSClearAuth();
+        store.auth = null;
     },
     isLogged(): boolean {
         if(!store.auth){

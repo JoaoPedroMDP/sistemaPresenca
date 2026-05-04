@@ -2,9 +2,11 @@ from datetime import date
 import logging
 from typing import Optional
 
+from django.utils import timezone
 from ninja import Router, Schema
 from ninja.security import SessionAuth
 
+from presenca.models import Member
 from presenca.repositories.member_repository import MemberRepository
 
 
@@ -28,7 +30,10 @@ class MeResponse(Schema):
 @member_router.get("/me", auth=SessionAuth(), response=MeResponse)
 def me(request):
     lgr.info(f"/member/me - INICIO")
-    member = MemberRepository.get(user=request.user)
+    try:
+        member = MemberRepository.get(user=request.user)
+    except Member.DoesNotExist:
+        lgr.error(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
 
     if not member:
         lgr.info(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
@@ -51,7 +56,8 @@ def set_photo(request):
         return {"error_code": 404, "error": "Membro não encontrado no banco..."}
     
     photo = request.FILES.get("photo")
-    member.photo.save(member.slug() + "_profile", photo)
+    member.photo.delete(save=False)  # Exclui a foto antiga, se existir
+    member.photo.save(member.slug() + "_profile_" + str(timezone.now()), photo)
     member.save()
 
     lgr.info(f"/member/photo - FIM")
