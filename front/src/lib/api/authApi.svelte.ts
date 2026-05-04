@@ -36,7 +36,8 @@ async function callLogin(username: string, password: string): Promise<ApiRespons
 
 async function callLogged(): Promise<ApiResponse> {
     let response = await callFetch({
-        input: "/api/auth/logged"
+        input: "/api/auth/logged",
+        ensureLogin: false,
     });
 
     if(!response.ok){

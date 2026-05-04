@@ -40,5 +40,5 @@
 			<button onclick={clearStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage</button>
 		</div>
 	{/if}
-	<span class="absolute bottom-1 right-1 text-indigo-950">v{version}</span>
+	<span class="absolute bottom-0 right-1 text-indigo-950 bg-white">v{version}</span>
 </div>

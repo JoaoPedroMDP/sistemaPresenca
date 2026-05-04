@@ -11,13 +11,16 @@ from presenca.repositories.member_repository import MemberRepository
 score_router = Router()
 lgr = logging.getLogger(__name__)
 
-@score_router.get("/{event_name}", auth=SessionAuth())
-def get_score(request, event_name: str):
-    lgr.info(f"/score/{event_name} - INICIO")
-    event = Event.objects.get(name=event_name)
+@score_router.get("/per-event", auth=SessionAuth())
+def get_score_per_event(request):
+    lgr.info(f"/score/per-event - INICIO")
+    
     member = MemberRepository.get(user=request.user)
+    events = Event.objects.filter(checkin__member__id=member.id).distinct()
+    return_data = {}
+    for e in events:
+        return_data[e.name] = ScoreController.get_score_for_event(member, e)
 
-    score = ScoreController.get_score_for_event(member, event)
-    lgr.info(f"Pontuação do membro '{member.name}' para o evento '{event.name}': {score} pontos.")
-    lgr.info(f"/score/{event_name} - FIM")
-    return {"score": score}
+    lgr.info(f"Retornando pontuação de {member.name} nos eventos {[e.name for e in events]}.")
+    lgr.info(f"/score/per-event - FIM")
+    return return_data

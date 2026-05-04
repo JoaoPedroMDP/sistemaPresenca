@@ -1,11 +1,12 @@
 from datetime import datetime
 import logging
+from typing import Dict, List
 
+from presenca.controllers.event_controller import EventController
 from presenca.controllers.ws_controller import WsController
 from presenca.repositories.event_repository import EventRepository
 from presenca.models import CheckIn, Event, Member
 from presenca.repositories.timescorerules_repository import TimeScoreRulesRepository
-from presenca.controllers.scoreboard_controller import ScoreboardController
 from presenca.repositories.checkin_repository import CheckinRepository
 
 CHECKIN_BOARD = "Presença"
@@ -19,9 +20,17 @@ class CheckinController:
         event = EventRepository.get(name=SABBATH_CLASS_EVENT)
         return cls.checkin(member, event, checkin_time)
 
-    @staticmethod
-    def get_member_history(member: Member):
-        return CheckIn.objects.filter(member=member).order_by("-date").all()
+    @classmethod
+    def get_member_history(cls, member: Member) -> Dict[str, List[CheckIn]]:
+        events_member_participated = EventController.get_events_member_participated(member)
+        by_event = {}
+        for e in events_member_participated:
+            if e.name not in by_event:
+                by_event[e.name] = []
+
+            by_event[e.name] = cls.get_checkins_for_event_member(e, member, limit=6)
+
+        return by_event
 
     @staticmethod
     def checkin(member: Member, event: Event, checkin_time: datetime):
@@ -33,5 +42,14 @@ class CheckinController:
         return points
 
     @staticmethod
-    def get_checkins_for_event_member(event: Event, member: Member):
-        return CheckIn.objects.filter(event=event, member=member).order_by("-date").all()
+    def get_checkins_for_event_member(event: Event, member: Member, limit=None):
+        print((event.start, event.end))
+        checkins = CheckIn.objects.filter(
+            event=event, member=member,
+            date__range=(event.start, event.end)
+        ).order_by("-date")
+
+        if limit is not None:
+            checkins = checkins[:limit].all()
+
+        return checkins

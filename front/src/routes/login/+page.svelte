@@ -25,7 +25,7 @@
         await goto('/me');
     }
 
-    function oku_login(e: KeyboardEvent): void {
+    function enter_login(e: KeyboardEvent): void {
         if(e.key === 'Enter'){
             login();
         }
@@ -36,6 +36,6 @@
     <span class="text-2xl text-indigo-900">{message}</span>
     <img src={logo} alt="Logo">
     <Text label="Usuário" bind:value={username}/>
-    <Text label="Senha" bind:value={password} type="password" onkeyup={oku_login}/>
+    <Text label="Senha" bind:value={password} type="password" onkeyup={enter_login}/>
     <Button text="Entrar" onclick={login}/>
 </div>

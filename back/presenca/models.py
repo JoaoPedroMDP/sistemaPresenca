@@ -39,6 +39,8 @@ class Event(Base):
     """
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
+    start = models.DateTimeField(default=timezone.now, null=True, blank=True)
+    end = models.DateTimeField(default=timezone.now, null=True, blank=True)
 
     class Meta: # type: ignore[misc]
         verbose_name = _("Evento")

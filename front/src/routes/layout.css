@@ -1,9 +1,10 @@
 @import 'tailwindcss';
 
-@plugin "@iconify/tailwind4";
-@import '@skeletonlabs/skeleton'; 
-@import '@skeletonlabs/skeleton-svelte';
 
 .font-readex {
     font-family: 'Readex Pro Variable', sans-serif;
+}
+
+.font-courier {
+    font-family: 'Courier Prime', sans-serif;
 }

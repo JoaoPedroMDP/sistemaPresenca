@@ -8,7 +8,7 @@
         onerror?: (msg: string) => void;
     }
 
-    let { src = $bindable(null), alt = 'Foto de perfil', onerror }: Props = $props();
+    let { src = $bindable(), alt = 'Foto de perfil', onerror }: Props = $props();
 
     let fileInput: HTMLInputElement;
     let cropModal = $state(false);
@@ -313,12 +313,11 @@
                 Cancelar
             </button>
             <button
-                class="px-6 py-2 rounded-full bg-indigo-900 text-white font-medium flex items-center gap-2 disabled:opacity-60"
+                class="px-6 py-2 rounded-full bg-emerald-500 text-white font-medium flex items-center gap-2 disabled:opacity-60"
                 onclick={confirmCrop}
                 disabled={uploading}
             >
                 {#if uploading}
-                    <span class="icon-[svg-spinners--ring-resize] text-lg"></span>
                     Enviando…
                 {:else}
                     Confirmar
@@ -339,7 +338,7 @@
         width="100" height="100"
         src={src || photoPlaceholder}
         {alt}
-        class="border-2 border-indigo-900 rounded-full object-cover w-[100px] h-[100px] transition-opacity group-hover:opacity-70"
+        class="border-2 border-indigo-900 ring-2 ring-emerald-500 ring-offset-1 rounded-full object-cover w-37.5 h-37.5 transition-opacity group-hover:opacity-70"
     />
     <span class="
         absolute inset-0 flex items-center justify-center

@@ -1,3 +1,4 @@
+import { goto } from "$app/navigation";
 import { callLogged, callLogin, callLogout } from "$lib/api/authApi.svelte";
 import type ApiResponse from "$lib/api/index.svelte";
 import { LSLoadAuth, LSSaveAuth, LSClearAuth, type Auth } from "$lib/storage/authStorage";
@@ -5,17 +6,15 @@ import { LSLoadAuth, LSSaveAuth, LSClearAuth, type Auth } from "$lib/storage/aut
 const DAY = 60 * 60 * 24 * 1000; // Dia em milissegundos
 
 interface AuthStoreT {
-    loginTrigger: number;
     auth: Auth | null;
     login(username: string, password: string): Promise<{success: boolean, message: string}>;
     logout(): Promise<void>;
     isLogged(): boolean;
     getLoggedFromServer(): Promise<boolean>;
-    triggerLogin(): void;
+    goToLogin(): Promise<void>;
 }
 
 const store: AuthStoreT = $state<AuthStoreT>({
-    loginTrigger: 0,
     auth: null,
     async login(username: string, password: string): Promise<ApiResponse> {
         let response = await callLogin(username, password);
@@ -66,10 +65,8 @@ const store: AuthStoreT = $state<AuthStoreT>({
         LSSaveAuth(authData);
         return true;
     },
-    triggerLogin(): void {
-        let now = new Date();
-        console.log("Triggering login at " + now.toISOString());
-        store.loginTrigger = now.getTime(); // Atualiza o trigger para o timestamp atual
+    async goToLogin(): Promise<void> {
+        await goto('/login');
     }
 })
 

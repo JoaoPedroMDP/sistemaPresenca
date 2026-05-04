@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { Snippet } from "svelte";
     import authStore from "$lib/stores/authStore.svelte";
-    import { goto } from "$app/navigation";
     
     let checkedAuth = $state(false);
     interface Props {
@@ -11,12 +10,7 @@
 	const props: Props = $props();
 
     $effect(() => {
-        authStore.loginTrigger;
-        if(!authStore.getLoggedFromServer()){
-            console.warn("Usuário não autenticado, redirecionando para login");
-            goto('/login');
-            return;
-        }
+        authStore.getLoggedFromServer();
         checkedAuth = true;
     })
 </script>

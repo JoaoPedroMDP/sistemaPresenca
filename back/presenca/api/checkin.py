@@ -1,15 +1,16 @@
 from datetime import datetime
 import logging
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from ninja import Router, Schema
 from ninja.security import SessionAuth
+from pydantic import field_validator, model_validator
 
 from presenca.controllers.checkin_controller import CheckinController
 from presenca.controllers.code_controller import CodeController
 from presenca.controllers.ws_controller import WsController
 from presenca.errors import UsedCodeError
-from presenca.models import Code
+from presenca.models import CheckIn, Code
 from presenca.repositories.code_repository import CodeRepository
 from presenca.repositories.member_repository import MemberRepository
 
@@ -84,18 +85,19 @@ def checkin(request, code_str: str, m_id: int):
     return {"message": f"Presença marcada!", "points": points}
 
 
-class HistoryCheckinResponse(Schema):
-    date: Optional[datetime]
-
-
 @checkin_router.get(
-    "/history", auth=SessionAuth(), response=List[HistoryCheckinResponse]
+    "/history", auth=SessionAuth(), response=Dict[str, List[datetime]]
 )
 def get_history(request):
     lgr.info(f"/checkin/history - INICIO")
+    
     member = MemberRepository.get(user=request.user)
     history = CheckinController.get_member_history(member)
+    
+    return_data = {}
+    for e in history:
+        return_data[e] = [c.date for c in history[e]]
 
     lgr.info(f"Histórico de check-ins do membro '{member.name}' retornado com {len(history)} registros.")
     lgr.info(f"/checkin/history - FIM")
-    return history
+    return return_data
