@@ -2,6 +2,9 @@ from datetime import datetime
 import logging
 from typing import Dict, List
 
+from django.utils import timezone
+from django.db.models import QuerySet
+
 from presenca.controllers.event_controller import EventController
 from presenca.controllers.ws_controller import WsController
 from presenca.repositories.event_repository import EventRepository
@@ -43,7 +46,6 @@ class CheckinController:
 
     @staticmethod
     def get_checkins_for_event_member(event: Event, member: Member, limit=None):
-        print((event.start, event.end))
         checkins = CheckIn.objects.filter(
             event=event, member=member,
             date__range=(event.start, event.end)
@@ -51,5 +53,14 @@ class CheckinController:
 
         if limit is not None:
             checkins = checkins[:limit].all()
+
+        return checkins
+
+    @staticmethod
+    def get_checkins_today_for_event(event: Event) -> QuerySet[CheckIn]:
+        checkins = CheckIn.objects.filter(
+            event=event,
+            datetime__date=timezone.now().date(),
+        )
 
         return checkins

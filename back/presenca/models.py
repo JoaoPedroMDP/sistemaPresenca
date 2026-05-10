@@ -32,6 +32,12 @@ class Member(Base):
     def slug(self):
         return unidecode.unidecode(self.name.split(' ')[0].lower().replace(" ", "_"))
 
+    def to_checkin(self):
+        return {
+            "name": self.name,
+            "photo": self.photo.url if self.photo else None,
+            "birthday": self.birthday.isoformat() if self.birthday else None,
+        }
 
 class Event(Base):
     """

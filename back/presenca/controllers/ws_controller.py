@@ -14,7 +14,7 @@ lgr = logging.getLogger(__name__)
 
 class WsController:
     @staticmethod
-    def get_cl():
+    def _get_cl():
         channel_layer = get_channel_layer()
         if not channel_layer:
             lgr.error("Channel layer não foi configurado corretamente.")
@@ -23,7 +23,7 @@ class WsController:
 
     @classmethod
     def group_send(cls,group_name, message: Dict):
-        async_to_sync(cls.get_cl().group_send)(group_name, message)
+        async_to_sync(cls._get_cl().group_send)(group_name, message)
 
     @classmethod
     def send_new_code_for_event(cls, event: Event):
@@ -42,9 +42,6 @@ class WsController:
             event.as_websocket_group_name(),
             {
                 "type": "memberCheckin",
-                "member": {
-                    "name": member.name,
-                    "photo": member.photo.url if member.photo else None
-                }
+                "member": member.to_checkin()
             }
         )

@@ -1,5 +1,5 @@
 interface PhloatingHandlers {
-    addPhoto: (photo: Photo) => void;
+    addPhoto: (photo: Photo, extras: Extras) => void;
 }
 
-export type {PhloatingHandlers};
+export type { PhloatingHandlers };

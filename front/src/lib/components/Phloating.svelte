@@ -1,5 +1,6 @@
 <script lang="ts">
-    import type { FloatingItem, Photo } from "./types";
+    import type { Extras, FloatingItem, Photo } from "./types";
+    import PartyHat from '$lib/assets/partyhat.png';
 
     const PHOTO_SIZE = 80;
     const MIN_SPEED = 1;
@@ -12,9 +13,9 @@
     let containerHeight = $state(600);
     let animFrame: number;
 
-    export function addPhoto({id, name, src}: Photo) {
+    export function addPhoto({id, name, src}: Photo, extras: Extras) {
         console.log("Adding photo to Phloating:", {id, name, src});
-        items.push(createItem({id, name, src}));
+        items.push(createItem({id, name, src}, extras));
     }
 
     function applyDeceleration(speed: number): number {
@@ -40,13 +41,14 @@
         return s;
     }
 
-    function createItem(photo: Photo): FloatingItem {
+    function createItem(photo: Photo, extras: Extras): FloatingItem {
         return {
             ...photo,
             x: randomBetween(PHOTO_SIZE, containerWidth - PHOTO_SIZE * 2),
             y: randomBetween(PHOTO_SIZE, containerHeight - PHOTO_SIZE * 2),
             vx: randomSpeed() * randomSign(),
             vy: randomSpeed() * randomSign(),
+            extras: extras,
         };
     }
 
@@ -110,6 +112,9 @@
                 height: {PHOTO_SIZE}px;
             "
         >
+            {#if item.extras.birthday}
+                <img src={PartyHat} class="absolute right-0 top-0" alt="Birthday Hat" />
+            {/if}
             {#if !item.src}
                 <span class="name">{item.name}</span>
             {:else}

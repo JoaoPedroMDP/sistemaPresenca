@@ -12,4 +12,14 @@ async function callGetHistory(): Promise<ApiResponse> {
     return new ApiResponse(true, "Histórico de checkins", await response.json());
 }
 
-export { callGetHistory };
+async function callAlreadyCheckedIn(eventName: string): Promise<ApiResponse> {
+    let response = await callFetch({input: `api/checkin/already/${eventName}`, ensureLogin: false });
+
+    if (!response.ok) {
+        console.log("Erro ao verificar checkin:", response.status, response.statusText);
+        return new ApiResponse(false, response.statusText);
+    }
+    return new ApiResponse(true, "Verificação de checkin", await response.json());
+}
+
+export { callGetHistory, callAlreadyCheckedIn };

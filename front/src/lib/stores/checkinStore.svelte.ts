@@ -1,15 +1,16 @@
 interface MemberCheckin {
     name: string;
     photo: string | null;
+    birthday: string | null;
 }
 
 const store = $state({
     members: [] as MemberCheckin[],
     observers: [] as ((member: MemberCheckin) => void)[],
-    addMember(name: string, photo: string | null) {
-        store.members.push({name, photo});
+    addMember(name: string, photo: string | null, birthday: string | null) {
+        store.members.push({name, photo, birthday});
         for (const observer of store.observers) {
-            observer({name, photo});
+            observer({name, photo, birthday});
         }
     },
     registerObserver(observer: (member: MemberCheckin) => void) {

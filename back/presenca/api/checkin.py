@@ -10,7 +10,7 @@ from presenca.controllers.checkin_controller import CheckinController
 from presenca.controllers.code_controller import CodeController
 from presenca.controllers.ws_controller import WsController
 from presenca.errors import UsedCodeError
-from presenca.models import CheckIn, Code
+from presenca.models import CheckIn, Code, Event
 from presenca.repositories.code_repository import CodeRepository
 from presenca.repositories.member_repository import MemberRepository
 
@@ -100,4 +100,21 @@ def get_history(request):
 
     lgr.info(f"Histórico de check-ins do membro '{member.name}' retornado com {len(history)} registros.")
     lgr.info(f"/checkin/history - FIM")
+    return return_data
+
+
+@checkin_router.get(
+    "/already/<event_name>", response=Dict[str, List[datetime]]
+)
+def get_checkins_today(request, event_name: str):
+    lgr.info(f"/checkin/already/{event_name} - INICIO")
+    
+    event = Event.objects.get(name=event_name)
+    checkins = CheckinController.get_checkins_today_for_event(event)
+    members = [c.member for c in checkins]
+    
+    return_data = {
+        "members": [m.to_checkin() for m in members],
+    }
+
     return return_data

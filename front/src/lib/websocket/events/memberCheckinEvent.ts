@@ -6,16 +6,18 @@ import type { CheckinPayload } from "./types";
 class MemberCheckinEvent extends SocketEvent {
     name: string;
     photo: string | null;
+    birthday: string | null;
 
     constructor(raw_payload: string) {
         super(raw_payload);
         const p = this.payload as CheckinPayload;
         this.name = p.member.name;
         this.photo = p.member.photo;
+        this.birthday = p.member.birthday;
     }
 
     handle(): void {
-        checkinStore.addMember(this.name, this.photo);
+        checkinStore.addMember(this.name, this.photo, this.birthday);
     }
 }
 

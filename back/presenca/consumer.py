@@ -1,10 +1,10 @@
 import logging
 from typing import Any
-import unicodedata
 from asgiref.sync import async_to_sync
 
 from channels.generic.websocket import JsonWebsocketConsumer
 
+from presenca.models import Event
 from presenca.repositories.event_repository import EventRepository
 from presenca.controllers.ws_controller import WsController
 
@@ -15,12 +15,7 @@ lgr = logging.getLogger(__name__)
 class CustomJsonConsumer(JsonWebsocketConsumer):
     group_name = None
 
-    def add_group(self, event_name) -> bool:
-        event = EventRepository.get(name=event_name)
-        if not event:
-            lgr.error(f"Evento '{event_name}' não encontrado. Verifique se o nome do evento está correto.")
-            return False
-
+    def add_group(self, event: Event) -> bool:
         self.group_name = event.as_websocket_group_name()
         try:
             lgr.debug(f"Adicionando {self.channel_name} ao grupo {self.group_name}")

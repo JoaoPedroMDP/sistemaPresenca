@@ -7,15 +7,31 @@
     import Phloating from '$lib/components/Phloating.svelte';
     import type { PhloatingHandlers } from '$lib/components/Phloating.svelte';
 	import checkinStore, { type MemberCheckin } from '$lib/stores/checkinStore.svelte';
+    import { callAlreadyCheckedIn } from '$lib/api/checkinApi.svelte';
 
 	let connected: boolean = $state(false);
 	let event_name: string = $state('Escola Sabatina');
 
 	let phloating: PhloatingHandlers | null = $state(null); 
 
+	async function loadPreviousCheckins(group_name: string){
+		let snaked_name = group_name.toLowerCase().replace(/\s+/g, '_');
+		let response = await callAlreadyCheckedIn(snaked_name);
+		if(response.success && response.data){
+			response.data.members.forEach(member => {
+				memberCheckin(member);
+			});
+		}
+		else{
+			console.error("Failed to fetch already checked-in members:", response.error);
+		}
+	}
+
 	async function enterGroup(group_name: string) : Promise<void> {
 		connected = await initSocket(group_name);
-		console.log(connected);
+		if(connected){
+			await loadPreviousCheckins(group_name);
+		}
 	}
 
 	async function onkeyup(e: KeyboardEvent): Promise<void> {
@@ -24,12 +40,34 @@
 		}
 	}
 
+	function isBirthWeek(birthday: string | null): boolean {
+		if(!birthday) return false;
+
+		const today = new Date();
+		const birthDate = new Date(birthday);
+		const birthMonth = birthDate.getMonth();
+		const birthDay = birthDate.getDate();
+
+		const todayMonth = today.getMonth();
+		const todayDay = today.getDate();
+
+		return birthMonth === todayMonth && Math.abs(birthDay - todayDay) <= 3;
+	}
+
 	function memberCheckin(member: MemberCheckin) {
 		if(!phloating){
 			console.log("Phloating component not initialized yet");
 			return;
 		}
-		phloating.addPhoto({id: member.name, name: member.name, src: member.photo});
+
+		let extras = {
+			birthday: isBirthWeek(member.birthday)
+		};
+
+		phloating.addPhoto(
+			{id: member.name, name: member.name, src: member.photo},
+			extras
+		);
 	}
 
 	checkinStore.registerObserver(memberCheckin);
