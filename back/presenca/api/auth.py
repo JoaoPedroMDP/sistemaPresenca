@@ -16,7 +16,7 @@ class LoginSchema(Schema):
 @login_router.post("/login")
 def login(request: ASGIRequest, data: LoginSchema):
     lgr.info(f"/auth/login - INICIO")
-    username = data.username
+    username = data.username.lower()
     password = data.password
 
     if not username or not password:
