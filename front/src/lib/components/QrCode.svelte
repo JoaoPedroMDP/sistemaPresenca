@@ -27,7 +27,7 @@
             height="300"
         />
         {#if import.meta.env.MODE == 'development'}
-            <h1 class="text-blue-300">{presenceUrl}</h1>
+            <a href={presenceUrl} target="_blank" class="text-blue-300">{presenceUrl}</a>
         {/if}
     {/if}
 </div>

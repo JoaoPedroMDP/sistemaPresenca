@@ -2,6 +2,7 @@ from datetime import date
 import logging
 from typing import Optional
 
+from django.http import JsonResponse
 from django.utils import timezone
 from ninja import Router, Schema
 from ninja.security import SessionAuth
@@ -34,6 +35,7 @@ def me(request):
         member = MemberRepository.get(user=request.user)
     except Member.DoesNotExist:
         lgr.error(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
+        return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
 
     if not member:
         lgr.info(f"Membro para usuário '{request.user.username}' não encontrado no banco.")

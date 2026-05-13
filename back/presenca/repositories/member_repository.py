@@ -15,4 +15,4 @@ class MemberRepository(Repository[Member]):
 
         return Member.objects.all().exclude(
             checkins__date__range=(today_00, today_midnight)
-        )
+        ).order_by("name")

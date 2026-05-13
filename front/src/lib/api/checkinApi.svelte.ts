@@ -22,4 +22,13 @@ async function callAlreadyCheckedIn(eventName: string): Promise<ApiResponse> {
     return new ApiResponse(true, "Verificação de checkin", await response.json());
 }
 
-export { callGetHistory, callAlreadyCheckedIn };
+async function callPendingMembers(code: string): Promise<ApiResponse> {
+    let response = await callFetch({ input: `/api/checkin/pending/${code}`});
+    if (!response.ok) {
+        console.log("Erro ao buscar membros pendentes:", response.status, response.statusText);
+        return new ApiResponse(false, (await response.json()).error ?? response.statusText);
+    }
+    return new ApiResponse(true, "Membros pendentes", await response.json());
+}
+
+export { callGetHistory, callAlreadyCheckedIn, callPendingMembers };

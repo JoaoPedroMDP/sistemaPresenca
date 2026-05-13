@@ -60,7 +60,7 @@ class CheckinController:
     def get_checkins_today_for_event(event: Event) -> QuerySet[CheckIn]:
         checkins = CheckIn.objects.filter(
             event=event,
-            datetime__date=timezone.now().date(),
+            date__date=timezone.now().date(),
         )
 
         return checkins

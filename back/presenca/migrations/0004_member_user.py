@@ -5,9 +5,9 @@ from django.conf import settings
 from django.db import migrations, models
 from django.contrib.auth.models import User
 
-from presenca.models import Member
 
 def get_default_user(apps, schema_editor):
+    Member = apps.get_model('presenca', 'Member')
     members = Member.objects.all()
 
     for m in members:

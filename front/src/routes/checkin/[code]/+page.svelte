@@ -3,7 +3,7 @@
     import type { Member } from "$lib/types/api";
     import { onMount } from "svelte";
     import type { PageProps } from "./$types";
-    import { error } from '@sveltejs/kit';
+    import { callPendingMembers } from "$lib/api/checkinApi.svelte";
 
     let { params }: PageProps = $props()
     let error_str: string|null = $state(null);
@@ -14,14 +14,19 @@
     let member: number | null = $state(null)
 
     onMount(async ()=>{
-        const response = await fetch(`/api/checkin/pending/${params.code}`);
-        let parsed = await response.json();
-
-        if(parsed.error){
-            error(parsed.error_code, parsed.error);
+        const response = await callPendingMembers(params.code);
+        if(!response.success){
+            error_str = response.message;
+            return;
         }
-
-        members = parsed.members;
+        
+        if(response.data && response.data.members){
+            members = response.data.members;
+        }else{
+            console.error("Não foi possível pegar os dados de membros pendentes");
+            console.log(response.data);
+            error_str = "Nenhum membro encontrado para esse código";
+        }
     });
 
     async function checkin(){
@@ -51,10 +56,10 @@
 </script>
 
 <div id="main" data-success={success} class="relative p-4 h-dvh flex flex-col justify-center items-center overflow-hidden">
-    <div id="content" data-success={success}>
+    <div id="content" class="flex flex-col items-center" data-success={success}>
         <label id="select" class="label flex flex-col text-indigo-900 z-10" data-success={success}>
             <span class="label-text">Quem é?</span>
-            <select class="select text-indigo-900 {error_str ? 'border-red-600 border-2': ''}" bind:value={member}>
+            <select class="select text-indigo-900 rounded-md border-2 {error_str ? 'border-red-600': 'border-indigo-900'}" bind:value={member}>
                 {#each members as m}
                     <option class="text-indigo-900" value={m.id}>{m.name}</option>
                 {/each}
@@ -63,9 +68,7 @@
                 <span class="label-text text-red-500">{error_str}</span>
             {/if}
         </label>
-        <div id="button" data-success={success} class="z-10">
-            <Button disabled={!member} onclick={checkin} text="Marcar presença"/>
-        </div>
+        <Button disabled={!member} onclick={checkin} text="Marcar presença"/>
     </div>
     {#if pointsEarned && pointsEarned > 0}
         <span id="points" data-success={success} class="text-black text-2xl">+ {pointsEarned}pts</span>

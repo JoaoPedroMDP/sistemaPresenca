@@ -8,6 +8,7 @@
     import type { PhloatingHandlers } from '$lib/components/Phloating.svelte';
 	import checkinStore, { type MemberCheckin } from '$lib/stores/checkinStore.svelte';
     import { callAlreadyCheckedIn } from '$lib/api/checkinApi.svelte';
+    import Button from '$lib/inputs/Button.svelte';
 
 	let connected: boolean = $state(false);
 	let event_name: string = $state('Escola Sabatina');
@@ -15,8 +16,7 @@
 	let phloating: PhloatingHandlers | null = $state(null); 
 
 	async function loadPreviousCheckins(group_name: string){
-		let snaked_name = group_name.toLowerCase().replace(/\s+/g, '_');
-		let response = await callAlreadyCheckedIn(snaked_name);
+		let response = await callAlreadyCheckedIn(group_name);
 		if(response.success && response.data){
 			response.data.members.forEach(member => {
 				memberCheckin(member);
@@ -78,6 +78,7 @@
 		<div class="flex flex-col items-center gap-4">
 			<p class="text-2xl text-indigo-900">Digite o nome do evento para gerar o QR Code</p>
 			<Text bind:value={event_name} {onkeyup}/>
+			<Button onclick={() => enterGroup(event_name)} text="Entrar"></Button>
 		</div>
 	{:else}
 		{#if codeStore.code}

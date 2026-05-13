@@ -4,14 +4,19 @@
 
     const PHOTO_SIZE = 80;
     const MIN_SPEED = 1;
-    const MAX_SPEED = 4;
+    const MAX_SPEED = 2;
     const DECELERATION = 0.997;
+    const CONFETTI_COUNT = 20;
+    const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
 
     let items = $state<FloatingItem[]>([]);
     let containerEl = $state<HTMLDivElement | null>(null);
     let containerWidth = $state(800);
     let containerHeight = $state(600);
     let animFrame: number;
+
+    let {debug = false} = $props();
+
 
     export function addPhoto({id, name, src}: Photo, extras: Extras) {
         console.log("Adding photo to Phloating:", {id, name, src});
@@ -104,23 +109,39 @@
 
 <div class="floating-container" bind:this={containerEl}>
     {#each items as item (item.id)}
-        <div
-            class="floating-photo"
-            style="
-                transform: translate({item.x}px, {item.y}px);
-                width: {PHOTO_SIZE}px;
-                height: {PHOTO_SIZE}px;
-            "
+        <div 
+        style="width: {PHOTO_SIZE}px; height: {PHOTO_SIZE}px; transform: translate({item.x}px, {item.y}px);" 
+        class="absolute"
         >
-            {#if item.extras.birthday}
-                <img src={PartyHat} class="absolute right-0 top-0" alt="Birthday Hat" />
-            {/if}
-            {#if !item.src}
-                <span class="name">{item.name}</span>
-            {:else}
-                <img src={item.src} alt={item.name} />
-            {/if}
-            <!-- <span>{item.vx} {item.vy}</span> -->
+        {#if item.extras.birthday}
+            <img src={PartyHat} class="absolute rotate-30 -right-4 -top-4 w-10 h-10 object-contain pointer-events-none z-1" alt="Birthday Hat" />
+            <div class="confetti-container">
+                {#each Array(CONFETTI_COUNT) as _, i}
+                    <div 
+                        class="confetti" 
+                        style="
+                            --delay: {i * 0.15}s;
+                            --initial-x: {randomBetween(0 + PHOTO_SIZE/4, PHOTO_SIZE - PHOTO_SIZE/4)}px;
+                            --target-x: {randomBetween(0, PHOTO_SIZE)}px;
+                            --rotation: {randomBetween(0, 360)}deg;
+                            background-color: {CONFETTI_COLORS[i % CONFETTI_COLORS.length]};
+                        "
+                    ></div>
+                {/each}
+            </div>
+        {/if}
+        {#if !item.src}
+            <span class="name">{item.name}</span>
+        {:else}
+            <img src={item.src} alt={item.name} class="floating-photo" 
+                style="width: {PHOTO_SIZE}px; height: {PHOTO_SIZE}px;"/>
+        {/if}
+        {#if debug }
+            <div class="absolute top-0 left-0 flex flex-col">
+                <span class="bg-white text-black">X: {item.x.toFixed(0)}</span>
+                <span class="bg-white text-black">Y: {item.y.toFixed(0)}</span>
+            </div>
+        {/if}
         </div>
     {/each}
 </div>
@@ -142,14 +163,7 @@
         flex-direction: column;
         align-items: center;
         gap: 4px;
-    }
-
-    .floating-photo img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-        display: block;
+        overflow: visible;
     }
 
     .name {
@@ -161,5 +175,36 @@
         max-width: 180px;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .confetti-container {
+        position: absolute;
+        top: 100%;
+        /* left: 50%; */
+        pointer-events: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    .confetti {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        top: 0;
+        left: var(--initial-x);
+        opacity: 0;
+        animation: confetti-fall 2s infinite;
+        animation-delay: var(--delay);
+    }
+
+    @keyframes confetti-fall {
+        0% {
+            transform: translate(-50%, 0px) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translate(calc(-50% + var(--target-x)), 200px) rotate(var(--rotation));
+            opacity: 0;
+        }
     }
 </style>

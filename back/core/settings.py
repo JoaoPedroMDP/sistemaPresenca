@@ -130,6 +130,7 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'default',
         },
         'file': {
             'class': 'logging.FileHandler',
