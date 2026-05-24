@@ -11,7 +11,7 @@
     let { src = $bindable(), alt = 'Foto de perfil', onerror }: Props = $props();
 
     let fileInput: HTMLInputElement;
-    let cropModal = $state(false);
+    let cropModalActive = $state(false);
     let canvas: HTMLCanvasElement;
     let cropCanvas: HTMLCanvasElement;
     let img = new Image();
@@ -55,7 +55,7 @@
                 cropSize = Math.round(minSide * 0.6);
                 cropX = Math.round((img.naturalWidth  - cropSize) / 2);
                 cropY = Math.round((img.naturalHeight - cropSize) / 2);
-                cropModal = true;
+                cropModalActive = true;
                 requestDraw();
             };
             img.src = ev.target?.result as string;
@@ -113,10 +113,12 @@
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.stroke();
+
+
     }
 
     $effect(() => {
-        if (cropModal && canvas && img.complete) requestDraw();
+        if (cropModalActive && canvas && img.complete) requestDraw();
     });
 
     // ── Coordenadas canvas ────────────────────────────────────────────────────
@@ -188,7 +190,6 @@
     }
 
     function onTouchStart(e: TouchEvent) {
-        e.preventDefault();
         if (e.touches.length === 1) {
             // 1 dedo → drag
             pinching = false;
@@ -213,7 +214,7 @@
     }
 
     function onTouchMove(e: TouchEvent) {
-        e.preventDefault();
+        // e.preventDefault();
         if (dragging && e.touches.length === 1) {
             const { x, y } = toImgCoords(e.touches[0].clientX, e.touches[0].clientY);
             cropX = dragOriginX + (x - dragStartX);
@@ -264,7 +265,7 @@
             const result = await callSetPhoto(blob);
             if (result.success) {
                 src = URL.createObjectURL(blob);
-                cropModal = false;
+                cropModalActive = false;
             } else {
                 onerror?.(result.message ?? 'Erro ao enviar foto.');
             }
@@ -273,7 +274,7 @@
         }
     }
 
-    function cancelCrop() { cropModal = false; }
+    function cancelCrop() { cropModalActive = false; }
 </script>
 
 <!-- Hidden inputs -->
@@ -281,7 +282,7 @@
 <canvas bind:this={cropCanvas} class="hidden"></canvas>
 
 <!-- Crop modal -->
-{#if cropModal}
+{#if cropModalActive}
     <div class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 px-4 gap-4">
         <span class="text-white text-sm opacity-70">
             Arraste para reposicionar · Pinça para redimensionar

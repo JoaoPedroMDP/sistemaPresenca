@@ -42,7 +42,6 @@
 
     function randomSpeed(): number{
         let s = randomBetween(MIN_SPEED, MAX_SPEED); 
-        console.log(s)
         return s;
     }
 

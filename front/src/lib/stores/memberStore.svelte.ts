@@ -1,10 +1,12 @@
 import { callMe } from "$lib/api/memberApi.svelte";
 import { LSLoadMember, LSSaveMember } from "$lib/storage/memberStorage";
-import { Member, type memberI } from "$lib/types/api";
+import { Member, type MemberI } from "$lib/types/api";
+import authStore from "./authStore.svelte";
+
 
 interface MemberStore {
-    member: memberI | null;
-    getMember(): Promise<memberI | null>;
+    member: MemberI | null;
+    getMember(): Promise<MemberI | null>;
 }
 
 const store: MemberStore = $state<MemberStore>({
@@ -14,8 +16,7 @@ const store: MemberStore = $state<MemberStore>({
             console.log("Buscando membro na API");
             let response = await callMe();
             if(!response.success){
-                console.log(response.message);
-                return null;
+                authStore.goToLogin();
             }
 
             let member = Member.fromJson(response.data);

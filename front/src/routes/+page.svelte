@@ -51,7 +51,7 @@
 		const todayMonth = today.getMonth();
 		const todayDay = today.getDate();
 
-		return birthMonth === todayMonth && Math.abs(birthDay - todayDay) <= 3;
+		return birthMonth === todayMonth && Math.abs(birthDay - todayDay) <= 5;
 	}
 
 	function memberCheckin(member: MemberCheckin) {
