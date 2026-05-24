@@ -4,7 +4,7 @@
 
     const PHOTO_SIZE = 80;
     const MIN_SPEED = 1;
-    const MAX_SPEED = 2;
+    const MAX_SPEED = 3;
     const DECELERATION = 0.997;
     const CONFETTI_COUNT = 20;
     const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
@@ -17,6 +17,7 @@
 
     let {debug = false} = $props();
 
+    let itemElements = new Map<string | number, HTMLElement>();
 
     export function addPhoto({id, name, src}: Photo, extras: Extras) {
         console.log("Adding photo to Phloating:", {id, name, src});
@@ -52,13 +53,31 @@
             y: randomBetween(PHOTO_SIZE, containerHeight - PHOTO_SIZE * 2),
             vx: randomSpeed() * randomSign(),
             vy: randomSpeed() * randomSign(),
+            width: photo.src ? PHOTO_SIZE : undefined,
+            height: photo.src ? PHOTO_SIZE : undefined,
             extras: extras,
         };
     }
 
+    function ensureItemSize(item: FloatingItem): FloatingItem {
+        if (item.width && item.height) {
+            return item;
+        }
+        
+        const el = itemElements.get(item.id);
+        if (el) {
+            item.width = el.offsetWidth;
+            item.height = el.offsetHeight;
+        }
+        
+        return item;
+    }
+
     function tick() {
         items = items.map((item: FloatingItem) => {
-            let { x, y, vx, vy } = item;
+            item = ensureItemSize(item);
+            
+            let { x, y, vx, vy, width = PHOTO_SIZE, height = PHOTO_SIZE } = item;
 
             x += vx;
             y += vy;
@@ -69,22 +88,21 @@
             if (x <= 0) {
                 x = 0;
                 vx = MAX_SPEED;
-            } else if (x + PHOTO_SIZE >= containerWidth) {
-                x = containerWidth - PHOTO_SIZE;
+            } else if (x + width >= containerWidth) {
+                x = containerWidth - width;
                 vx = -MAX_SPEED;
             }
 
             if (y <= 0) {
                 y = 0;
                 vy = MAX_SPEED;
-            } else if (y + PHOTO_SIZE >= containerHeight) {
-                y = containerHeight - PHOTO_SIZE;
+            } else if (y + height >= containerHeight) {
+                y = containerHeight - height;
                 vy = -MAX_SPEED;
             }
 
             return { ...item, x, y, vx, vy };
         });
-
         animFrame = requestAnimationFrame(tick);
     }
 
@@ -92,6 +110,16 @@
         if (!containerEl) return;
         containerWidth = containerEl.clientWidth;
         containerHeight = containerEl.clientHeight;
+    }
+
+    function trackPhoto(node: HTMLElement, id: string | number) {
+        itemElements.set(id, node);
+
+        return {
+            destroy() {
+                itemElements.delete(id);
+            }
+        };
     }
 
     $effect(() => {
@@ -108,8 +136,9 @@
 
 <div class="floating-container" bind:this={containerEl}>
     {#each items as item (item.id)}
-        <div 
-        style="width: {PHOTO_SIZE}px; height: {PHOTO_SIZE}px; transform: translate({item.x}px, {item.y}px);" 
+        <div
+        use:trackPhoto={item.id}
+        style="transform: translate({item.x}px, {item.y}px);" 
         class="absolute"
         >
         {#if item.extras.birthday}

@@ -1,6 +1,6 @@
 interface Photo {
     id: string | number;
-    src: string;
+    src: string | null;
     name?: string;
 }
 
@@ -14,6 +14,8 @@ interface FloatingItem extends Photo {
     vx: number;
     vy: number;
     extras: Extras;
+    width?: number;
+    height?: number;
 }
 
 

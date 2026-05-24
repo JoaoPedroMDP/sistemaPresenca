@@ -58,9 +58,10 @@ class CheckinController:
 
     @staticmethod
     def get_checkins_today_for_event(event: Event) -> QuerySet[CheckIn]:
+        today = timezone.localtime(timezone.now()).date()
         checkins = CheckIn.objects.filter(
             event=event,
-            date__date=timezone.now().date(),
+            date__date=today,
         )
-
+        lgr.debug(f"Checkins para o evento {event.name} hoje ({today}): {checkins.count()}")
         return checkins

@@ -4,11 +4,9 @@ from django.contrib import admin
 from django.db.models.fields.related import ForeignKey
 from django.forms.models import ModelChoiceField
 from django.http import HttpRequest
-from django.utils.translation import gettext_lazy as _
 from django.utils.formats import localize
 from django.utils import timezone
 
-from presenca.utils import is_today
 from presenca.models import CheckIn, Code, Event, TimeScoreRules, Member, Score, Scoreboard
 
 
@@ -70,7 +68,7 @@ class MemberAdmin(admin.ModelAdmin):
     search_fields = ("name", "user__username")
     ordering = ("name",)
 
-admin.site.site_title = _("Painel - Presença Jovens")
+admin.site.site_title = "Painel - Presença Jovens"
 admin.site.register(Code, CodeAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(CheckIn, CheckInAdmin)

@@ -8,6 +8,11 @@ const store = $state({
     members: [] as MemberCheckin[],
     observers: [] as ((member: MemberCheckin) => void)[],
     addMember(name: string, photo: string | null, birthday: string | null) {
+        if(store.members.some(member => member.name === name)) {
+            console.log(`Membro ${name} já registrado, ignorando check-in duplicado.`);
+            return;
+        }
+        
         store.members.push({name, photo, birthday});
         for (const observer of store.observers) {
             observer({name, photo, birthday});
