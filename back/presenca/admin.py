@@ -64,9 +64,9 @@ class ScoreAdmin(HasMemberList):
 
 
 class MemberAdmin(admin.ModelAdmin):
-    list_display = ("name", "user", "created_at")
+    list_display = ("name", "user", "birthday")
     search_fields = ("name", "user__username")
-    ordering = ("name",)
+    ordering = ("name","birthday")
 
 admin.site.site_title = "Painel - Presença Jovens"
 admin.site.register(Code, CodeAdmin)
