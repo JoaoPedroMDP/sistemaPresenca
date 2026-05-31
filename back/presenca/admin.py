@@ -60,7 +60,6 @@ class ScoreAdmin(HasMemberList):
     list_filter = ("board",)
     search_fields = ("member__name", "board__name", "points")
     ordering = ("-points",)
-    
 
 
 class MemberAdmin(admin.ModelAdmin):

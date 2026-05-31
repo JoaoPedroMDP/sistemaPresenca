@@ -76,14 +76,14 @@
 <div class="flex flex-row items-center justify-center h-dvh gap-8 text-black">
 	{#if !connected}
 		<div class="flex flex-col items-center gap-4">
-			<p class="text-2xl text-indigo-900">Digite o nome do evento para gerar o QR Code</p>
+			<p class="text-2xl text-center text-indigo-900">Digite o nome do evento para gerar o QR Code</p>
 			<Text bind:value={event_name} {onkeyup}/>
 			<Button onclick={() => enterGroup(event_name)} text="Entrar"></Button>
 		</div>
 	{:else}
 		{#if codeStore.code}
 		<div class="flex flex-col items-center gap-4">
-			<h1 class="text-4xl text-indigo-900 z-10">Registre sua presença!!</h1>
+			<h1 class="text-4xl text-center text-indigo-900 z-10">Registre sua presença!!</h1>
 			<div class="relative flex justify-center items-center w-min z-10">
 				<QrCode />
 			</div>
