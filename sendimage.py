@@ -7,12 +7,12 @@ def main(back: bool, front: bool):
     if back:
         os.system("docker compose -f docker-compose-dev.yml build --no-cache back")
         os.system("docker save sistemapresenca-back:latest -o back.tar.gz")
-        os.system("scp back.tar.gz root@checkin:/images/back.tar.gz")
+        os.system("scp back.tar.gz root@presenca:/images/back.tar.gz")
 
     if front:
         os.system("docker compose -f docker-compose-dev.yml build --no-cache front")
         os.system("docker save sistemapresenca-front:latest -o front.tar.gz")
-        os.system("scp front.tar.gz root@checkin:/images/front.tar.gz")
+        os.system("scp front.tar.gz root@presenca:/images/front.tar.gz")
 
 if __name__ == "__main__":
     back = False

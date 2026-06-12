@@ -13,11 +13,7 @@
 
 	let connected: boolean = $state(false);
 	let event_name: string = $state('Escola Sabatina');
-	let scoreboard = $state([
-		{ name: "Maria", score: 15 },
-		{ name: "João", score: 10 },
-		{ name: "Pedro", score: 8 }
-	]);
+	let scoreboard = $state([]);
 	let phloating: PhloatingHandlers | null = $state(null); 
 
 	async function loadPreviousCheckins(group_name: string){
