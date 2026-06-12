@@ -3,8 +3,8 @@
     import PartyHat from '$lib/assets/partyhat.png';
 
     const PHOTO_SIZE = 80;
-    const MIN_SPEED = 1;
-    const MAX_SPEED = 3;
+    const MIN_SPEED = 2;
+    const MAX_SPEED = 5;
     const DECELERATION = 0.997;
     const CONFETTI_COUNT = 20;
     const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];

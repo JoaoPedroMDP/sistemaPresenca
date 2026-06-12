@@ -5,7 +5,7 @@
     import PhotoSelector from "$lib/components/PhotoSelector.svelte";
     import { formatDateInUTC } from "$lib/dateUtils";
     import { callGetHistory } from "$lib/api/checkinApi.svelte";
-    import { callGetScorePerEvent } from "$lib/api/scoreApi.svelte";
+    import { callGetUserScorePerEvent } from "$lib/api/scoreApi.svelte";
 
     let member: Member | null = $state(null);
     let checkinHistory: { [key: string]: string[] } = $state({});
@@ -32,7 +32,7 @@
     }
 
     async function getScorePerEvent() {
-        let response = await callGetScorePerEvent();
+        let response = await callGetUserScorePerEvent();
         if (!response.success) {
             message = response.message;
             return;

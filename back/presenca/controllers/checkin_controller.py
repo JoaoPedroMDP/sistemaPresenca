@@ -31,7 +31,7 @@ class CheckinController:
             if e.name not in by_event:
                 by_event[e.name] = []
 
-            by_event[e.name] = cls.get_checkins_for_event_member(e, member, limit=6)
+            by_event[e.name] = cls.get_member_checkins_for_event(e, member, limit=6)
 
         return by_event
 
@@ -45,7 +45,7 @@ class CheckinController:
         return points
 
     @staticmethod
-    def get_checkins_for_event_member(event: Event, member: Member, limit=None):
+    def get_member_checkins_for_event(event: Event, member: Member, limit=None):
         checkins = CheckIn.objects.filter(
             event=event, member=member,
             date__range=(event.start, event.end)
@@ -64,4 +64,10 @@ class CheckinController:
             date__date=today,
         )
         lgr.debug(f"Checkins para o evento {event.name} hoje ({today}): {checkins.count()}")
+        return checkins
+
+    @staticmethod
+    def get_checkins_for_event(event: Event) -> QuerySet[CheckIn]:
+        checkins = CheckIn.objects.filter(event=event)
+        lgr.debug(f"Checkins para o evento {event.name}: {checkins.count()}")
         return checkins

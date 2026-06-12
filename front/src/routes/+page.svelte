@@ -9,10 +9,15 @@
 	import checkinStore, { type MemberCheckin } from '$lib/stores/checkinStore.svelte';
     import { callAlreadyCheckedIn } from '$lib/api/checkinApi.svelte';
     import Button from '$lib/inputs/Button.svelte';
+    import { callGetEventScoreboard } from '$lib/api/scoreApi.svelte';
 
 	let connected: boolean = $state(false);
 	let event_name: string = $state('Escola Sabatina');
-
+	let scoreboard = $state([
+		{ name: "Maria", score: 15 },
+		{ name: "João", score: 10 },
+		{ name: "Pedro", score: 8 }
+	]);
 	let phloating: PhloatingHandlers | null = $state(null); 
 
 	async function loadPreviousCheckins(group_name: string){
@@ -27,10 +32,19 @@
 		}
 	}
 
+	async function loadScoreboard(scoreboard_name: string){
+		let response = await callGetEventScoreboard(scoreboard_name);
+		if(response.success){
+			scoreboard = response.data.data;
+		}
+	}
+
 	async function enterGroup(group_name: string) : Promise<void> {
 		connected = await initSocket(group_name);
 		if(connected){
 			await loadPreviousCheckins(group_name);
+			await loadScoreboard(group_name);
+			console.log("Connected to group:", group_name);
 		}
 	}
 
@@ -71,6 +85,7 @@
 	}
 
 	checkinStore.registerObserver(memberCheckin);
+	$inspect(scoreboard);
 </script>
 
 <div class="flex flex-row items-center justify-center h-dvh gap-8 text-black">
@@ -88,6 +103,18 @@
 				<QrCode />
 			</div>
 			<Phloating bind:this={phloating}/>
+		</div>
+		{/if}
+		{#if scoreboard && scoreboard.length > 0}
+		<div class="flex flex-col gap-2 min-w-[220px] backdrop-blur-md rounded-2xl p-4 z-10">
+			<p class="text-sm text-center text-indigo-400 tracking-wide">Placar</p>
+			{#each scoreboard.slice(0, 4) as entry, i}
+			<div class={`flex items-center gap-3 px-4 py-2.5 rounded-xl ${i === 0 ? 'bg-emerald-500' : ''}`}>
+				<span class="text-xs font-medium {i === 0 ? 'text-indigo-700' : 'text-gray-400'} w-5">{i + 1}º</span>
+				<span class="flex-1 text-sm {i === 0 ? 'font-semibold text-indigo-900' : 'text-gray-700'}">{entry.name}</span>
+				<span class="text-sm font-medium {i === 0 ? 'text-indigo-900' : 'text-gray-700'}">{entry.score}</span>
+			</div>
+			{/each}
 		</div>
 		{/if}
 	{/if}

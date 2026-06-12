@@ -104,7 +104,7 @@
     
     #main[data-success="true"]:before {
         content: '';
-        background-color: var(--color-emerald-400);
+        background-color: var(--color-emerald-500);
         transform: scale(250);
         overflow: hidden;
     }
