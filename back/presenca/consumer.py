@@ -5,7 +5,6 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 
 from presenca.models import Event
-from presenca.repositories.event_repository import EventRepository
 from presenca.controllers.ws_controller import WsController
 
 
@@ -50,7 +49,7 @@ class Consumer(CustomJsonConsumer):
         type = content.get("type")
         if type == "joinEvent":
             lgr.debug("Mensagem recebida: joinEvent")
-            event = EventRepository.get(name=content.get("event"))
+            event = Event.objects.get(name=content.get("event"))
             success = self.add_group(event)
             if success:
                 WsController.send_new_code_for_event(event)

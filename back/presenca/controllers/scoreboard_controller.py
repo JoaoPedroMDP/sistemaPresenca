@@ -1,13 +1,11 @@
-from presenca.repositories.score_repository import ScoreRepository
-from presenca.repositories.scoreboard_repository import ScoreboardRepository
-from presenca.models import Member
+from presenca.models import Member, Score, Scoreboard
 
 
 class ScoreboardController:
     @staticmethod
     def add_points(member: Member, board_name: str, points: float):
-        scoreboard = ScoreboardRepository.get_or_create(name=board_name)
-        score = ScoreRepository.get_or_create(scoreboard=scoreboard, member=member)
-        ScoreRepository.add_points(score, points)
+        scoreboard = Scoreboard.get_or_create_by_name(name=board_name)
+        score = Score.get_or_create_for_board_and_member(scoreboard=scoreboard, member=member)
+        score.add_points(points)
         
         return scoreboard

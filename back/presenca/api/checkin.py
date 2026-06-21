@@ -10,9 +10,7 @@ from presenca.controllers.checkin_controller import CheckinController
 from presenca.controllers.code_controller import CodeController
 from presenca.controllers.ws_controller import WsController
 from presenca.errors import UsedCodeError
-from presenca.models import Code, Event
-from presenca.repositories.code_repository import CodeRepository
-from presenca.repositories.member_repository import MemberRepository
+from presenca.models import Code, Event, Member
 
 checkin_router = Router()
 lgr = logging.getLogger(__name__)
@@ -23,7 +21,7 @@ def get_pending_members(request, code_str: str):
     lgr.info(f"/checkin/pending/{code_str} - INICIO")
     lgr.info(f"Buscando membros que ainda não fizeram check-in. Código: '{code_str}'")
     try:
-        code = CodeRepository.get(code=code_str)
+        code = Code.objects.get(code=code_str)
         CodeController.use_code(code)
         WsController.send_new_code_for_event(code.event)
     except UsedCodeError:
@@ -41,7 +39,7 @@ def get_pending_members(request, code_str: str):
 
     membs = [
         {"id": member.id, "name": member.name}
-        for member in MemberRepository.didnt_checkin_today()
+        for member in Member.didnt_checkin_today()
     ]
 
     lgr.info(f"{len(membs)} membros encontrados")
@@ -56,7 +54,7 @@ def get_pending_members(request, code_str: str):
 def get_history(request):
     lgr.info(f"/checkin/history - INICIO")
     
-    member = MemberRepository.get(user=request.user)
+    member = Member.objects.get(user=request.user)
     history = CheckinController.get_member_history(member)
     
     return_data = {}
@@ -89,8 +87,8 @@ def get_checkins_today(request, event_name: str):
 def checkin(request, code_str: str, m_id: int):
     lgr.info(f"/checkin/{code_str}/{m_id} - INICIO")
     lgr.info(f"Check-in com código '{code_str}' e ID de membro '{m_id}'")
-    member = MemberRepository.get(id=m_id)
-    code = CodeRepository.get(code=code_str)
+    member = Member.objects.get(id=m_id)
+    code = Code.objects.get(code=code_str)
 
     if not member:
         return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
@@ -114,7 +112,7 @@ def checkin(request, code_str: str, m_id: int):
         }, status=400)
 
     points = CheckinController.checkin_sabbath(member, code.used)
-    CodeRepository.assign_member(code, member)
+    code.assign_member(member)
 
     lgr.info(f"Membro '{member.name}' ganhou {points} pontos por ter feito checkin às {code.used}.")
     lgr.info(f"/checkin/{code_str}/{m_id} - FIM")

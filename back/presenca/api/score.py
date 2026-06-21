@@ -4,8 +4,7 @@ from ninja import Router
 from ninja.security import SessionAuth
 
 from presenca.controllers.score_controller import ScoreController
-from presenca.models import Event
-from presenca.repositories.member_repository import MemberRepository
+from presenca.models import Event, Member
 
 
 score_router = Router()
@@ -15,7 +14,7 @@ lgr = logging.getLogger(__name__)
 def get_user_score_per_event(request):
     lgr.info(f"/score/per-event - INICIO")
     
-    member = MemberRepository.get(user=request.user)
+    member = Member.objects.get(user=request.user)
     events = Event.objects.filter(checkin__member__id=member.id).distinct()
     return_data = {}
     for e in events:

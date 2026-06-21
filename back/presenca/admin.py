@@ -4,10 +4,10 @@ from django.contrib import admin
 from django.db.models.fields.related import ForeignKey
 from django.forms.models import ModelChoiceField
 from django.http import HttpRequest
-from django.utils.formats import localize
+from django.utils.formats import date_format
 from django.utils import timezone
 
-from presenca.models import CheckIn, Code, Event, TimeScoreRules, Member, Score, Scoreboard
+from presenca.models import CheckIn, Code, Configs, Event, TimeScoreRules, Member, Score, Scoreboard
 
 
 class HasMemberList(admin.ModelAdmin):
@@ -18,18 +18,18 @@ class HasMemberList(admin.ModelAdmin):
 
 
 class CheckInAdmin(HasMemberList):
-    list_display = ("name", "date", "event")
+    list_display = ("name", "checkindate", "event")
     list_filter = ("date", "event")
     search_fields = ("member__name", "date", "event__name")
     ordering = ("-date",)
 
     @admin.display(description="Data")
-    def date(self, obj):
+    def checkindate(self, obj):
         if not obj.date:
             return ""
-        
+
         dt_local = timezone.localtime(obj.date)
-        return localize(dt_local, use_l10n=True)
+        return date_format(dt_local, format="d/m/Y H:i:s")
 
     @admin.display(description="Nome")
     def name(self, obj):
@@ -37,16 +37,16 @@ class CheckInAdmin(HasMemberList):
 
 
 class TimeScoreRulesAdmin(admin.ModelAdmin):
-    list_display = ('event', 'start_time', 'end_time', 'points')
+    list_display = ('event', 'start_time_s', 'end_time_s', 'points')
     list_filter = ('event',)
     search_fields = ('event__name',)
 
     @admin.display(description="Inicio")
-    def start_time(self, obj):
+    def start_time_s(self, obj):
         return obj.start_time.strftime("%H:%M:%S")
 
     @admin.display(description="Fim")
-    def end_time(self, obj):
+    def end_time_s(self, obj):
         return obj.end_time.strftime("%H:%M:%S")
 
 
@@ -67,6 +67,12 @@ class MemberAdmin(admin.ModelAdmin):
     search_fields = ("name", "user__username")
     ordering = ("name","birthday")
 
+
+class ConfigsAdmin(admin.ModelAdmin):
+    list_display = ("key", "value")
+    search_fields = ("key", "value")
+
+
 admin.site.site_title = "Painel - Presença Jovens"
 admin.site.register(Code, CodeAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -75,3 +81,4 @@ admin.site.register(Scoreboard)
 admin.site.register(Score, ScoreAdmin)
 admin.site.register(Event)
 admin.site.register(TimeScoreRules, TimeScoreRulesAdmin)
+admin.site.register(Configs, ConfigsAdmin)

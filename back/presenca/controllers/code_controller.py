@@ -1,21 +1,19 @@
 from presenca.errors import UsedCodeError
 from presenca.models import Code, Event
-from presenca.repositories.code_repository import CodeRepository
-from presenca.repositories.event_repository import EventRepository
 
 
 class CodeController:
     @staticmethod
     def get_unused_code(event: Event) -> Code:
-        unused = CodeRepository.get_unused_code(event)
+        unused = Code.get_unused_for_event(event)
         if not unused:
-            unused = CodeRepository.create(event)
+            unused = Code.create_for_event(event)
 
         return unused
 
     @classmethod
     def get_unused_code_event_name(cls, event_name: str) -> Code:
-        event: Event = EventRepository.get(name=event_name)
+        event: Event = Event.objects.get(name=event_name)
         return cls.get_unused_code(event)
 
     @staticmethod
@@ -23,4 +21,4 @@ class CodeController:
         if code.used:
             raise UsedCodeError("Code already used")
 
-        CodeRepository.mark_as_used(code)
+        code.mark_as_used()

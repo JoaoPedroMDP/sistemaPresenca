@@ -1,7 +1,9 @@
-from datetime import time
+from datetime import datetime, time
+import uuid
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 import unidecode
@@ -39,6 +41,17 @@ class Member(Base):
             "birthday": self.birthday.isoformat() if self.birthday else None,
         }
 
+    @classmethod
+    def didnt_checkin_today(cls):
+        today = timezone.localtime(timezone.now()).date()
+        start = timezone.make_aware(datetime.combine(today, time.min))
+        end = timezone.make_aware(datetime.combine(today, time.max))
+
+        return cls.objects.all().exclude(
+            checkins__date__range=(start, end)
+        ).order_by("name")
+
+
 class Event(Base):
     """
         Evento. Por exemplo: Escola Sabatina, Culto Jovem em um dia específico, etc.
@@ -73,6 +86,27 @@ class Code(Base):
     def __str__(self):
         return self.code
 
+    @classmethod
+    def create_for_event(cls, event):
+        return cls.objects.create(code=str(uuid.uuid4()), event=event)
+
+    @classmethod
+    def get_unused_for_event(cls, event):
+        unused = cls.objects.filter(used__isnull=True, event=event)
+
+        if len(unused) > 0:
+            return unused[0]
+
+        return None
+
+    def mark_as_used(self):
+        self.used = timezone.now()
+        self.save()
+
+    def assign_member(self, member):
+        self.used_by = member
+        self.save()
+
 
 class CheckIn(Base):
     """
@@ -89,6 +123,17 @@ class CheckIn(Base):
     def __str__(self):
         return f"{self.member.name} - {self.date}"
 
+    @classmethod
+    def create_idempotent(cls, member, event, checkin_time: datetime):
+        try:
+            return cls.objects.create(
+                member=member,
+                event=event,
+                date=checkin_time
+            )
+        except IntegrityError:
+            return cls.objects.get(member=member, event=event, date=checkin_time)
+
 
 class Scoreboard(Base):
     """
@@ -102,6 +147,11 @@ class Scoreboard(Base):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_or_create_by_name(cls, name: str):
+        scoreboard, _ = cls.objects.get_or_create(name=name)
+        return scoreboard
 
 
 class Score(Base):
@@ -118,6 +168,15 @@ class Score(Base):
 
     def __str__(self):
         return f"{self.member.name} - {self.points} pontos"
+
+    @classmethod
+    def get_or_create_for_board_and_member(cls, scoreboard, member):
+        score, _ = cls.objects.get_or_create(board=scoreboard, member=member)
+        return score
+
+    def add_points(self, points: float):
+        self.points += points
+        self.save()
 
 
 class TimeScoreRules(Base):
@@ -147,3 +206,30 @@ class TimeScoreRules(Base):
 
     def __str__(self):
         return f"{self.event.name} {self.start_time} - {self.end_time}: {self.points} pontos."
+
+    @classmethod
+    def get_points_for_time_in_event(cls, event, checkin_time: datetime) -> float:
+        tz_converted = checkin_time.astimezone(timezone.get_current_timezone())
+        only_time = tz_converted.time()
+        timescore = cls.objects.get(
+            event=event,
+            start_time__lte=only_time,
+            end_time__gte=only_time
+        )
+
+        return timescore.points
+
+
+class Configs(Base):
+    """
+        Configurações gerais do sistema.
+    """
+    key = models.CharField(max_length=100, unique=True)
+    value = models.CharField(max_length=500)
+
+    class Meta: # type: ignore[misc]
+        verbose_name = _("Configuração")
+        verbose_name_plural = _("Configurações")
+
+    def __str__(self):
+        return f"{self.key}: {self.value}"

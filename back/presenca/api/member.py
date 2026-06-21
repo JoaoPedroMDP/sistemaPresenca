@@ -8,7 +8,6 @@ from ninja import Router, Schema
 from ninja.security import SessionAuth
 
 from presenca.models import Member
-from presenca.repositories.member_repository import MemberRepository
 
 
 member_router = Router()
@@ -32,7 +31,7 @@ class MeResponse(Schema):
 def me(request):
     lgr.info(f"/member/me - INICIO")
     try:
-        member = MemberRepository.get(user=request.user)
+        member = Member.objects.get(user=request.user)
     except Member.DoesNotExist:
         lgr.error(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
         return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
@@ -50,7 +49,7 @@ def me(request):
 @member_router.post("/photo", auth=SessionAuth(), response=MeResponse)
 def set_photo(request):
     lgr.info(f"/member/photo - INICIO")
-    member = MemberRepository.get(user=request.user)
+    member = Member.objects.get(user=request.user)
 
     if not member:
         lgr.info(f"Membro para usuário '{request.user.username}' não encontrado no banco.")

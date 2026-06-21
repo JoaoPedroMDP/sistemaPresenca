@@ -1,6 +1,5 @@
 from presenca.controllers.checkin_controller import CheckinController
-from presenca.models import Event, Member
-from presenca.repositories.timescorerules_repository import TimeScoreRulesRepository
+from presenca.models import Event, Member, TimeScoreRules
 
 
 class ScoreController:
@@ -9,7 +8,7 @@ class ScoreController:
         checkins = CheckinController.get_member_checkins_for_event(event, member)
         total_points = 0
         for c in checkins:
-            total_points += TimeScoreRulesRepository.get_points_for_time_in_event(event=event, checkin_time=c.date)
+            total_points += TimeScoreRules.get_points_for_time_in_event(event=event, checkin_time=c.date)
 
         return total_points
     
@@ -23,7 +22,7 @@ class ScoreController:
                     "name": c.member.name,
                     "score": 0
                 }
-            member_scores[c.member.id]["score"] += TimeScoreRulesRepository.get_points_for_time_in_event(event=event, checkin_time=c.date)
+            member_scores[c.member.id]["score"] += TimeScoreRules.get_points_for_time_in_event(event=event, checkin_time=c.date)
 
         # Ordenar por pontuação
         sorted_scores = sorted(member_scores.values(), key=lambda x: x["score"], reverse=True)
