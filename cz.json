@@ -5,6 +5,7 @@
     "version_scheme": "semver2",
     "version": "1.0.0",
     "update_changelog_on_bump": true,
-    "major_version_zero": true
+    "major_version_zero": true,
+    "annotated_tag": true
   }
 }
