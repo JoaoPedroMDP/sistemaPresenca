@@ -38,7 +38,7 @@ def get_pending_members(request, code_str: str):
 
     membs = [
         {"id": member.id, "name": member.name}
-        for member in Member.didnt_checkin_today()
+        for member in Member.didnt_checkin_today(code.event)
     ]
 
     lgr.info(f"{len(membs)} membros encontrados")
@@ -105,7 +105,7 @@ def checkin(request, code_str: str, m_id: int):
         }, status=400)
 
     checkin_time = timezone.now()
-    points = CheckinController.checkin_sabbath(member, checkin_time)
+    points = CheckinController.checkin(member, code.event, checkin_time)
 
     lgr.info(f"Membro '{member.name}' ganhou {points} pontos por ter feito checkin às {checkin_time}.")
     lgr.info(f"/checkin/{code_str}/{m_id} - FIM")

@@ -92,6 +92,18 @@ def test_didnt_checkin_today_excludes_member_with_checkin(db, event, member):
     other = Member.objects.create(name="Sem Presença")
     CheckIn.objects.create(member=member, event=event, date=timezone.now())
 
-    pending = list(Member.didnt_checkin_today())
+    pending = list(Member.didnt_checkin_today(event))
 
     assert pending == [other]
+
+
+def test_didnt_checkin_today_is_scoped_per_event(db, event, member):
+    other_event = Event.objects.create(
+        name="Outro Evento",
+        start=timezone.now() - timedelta(days=30),
+        end=timezone.now() + timedelta(days=30),
+    )
+    CheckIn.objects.create(member=member, event=event, date=timezone.now())
+
+    assert member not in Member.didnt_checkin_today(event)
+    assert member in Member.didnt_checkin_today(other_event)

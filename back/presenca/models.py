@@ -43,12 +43,13 @@ class Member(Base):
         }
 
     @classmethod
-    def didnt_checkin_today(cls):
+    def didnt_checkin_today(cls, event):
         today = timezone.localtime(timezone.now()).date()
         start = timezone.make_aware(datetime.combine(today, time.min))
         end = timezone.make_aware(datetime.combine(today, time.max))
 
         return cls.objects.all().exclude(
+            checkins__event=event,
             checkins__date__range=(start, end)
         ).order_by("name")
 

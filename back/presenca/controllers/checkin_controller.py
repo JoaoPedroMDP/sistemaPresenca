@@ -10,16 +10,10 @@ from presenca.controllers.ws_controller import WsController
 from presenca.models import CheckIn, Event, Member, TimeScoreRules
 
 CHECKIN_BOARD = "Presença"
-SABBATH_CLASS_EVENT = "Escola Sabatina"
 
 lgr = logging.getLogger(__name__)
 
 class CheckinController:
-    @classmethod
-    def checkin_sabbath(cls, member: Member, checkin_time: datetime) -> float:
-        event = Event.objects.get(name=SABBATH_CLASS_EVENT)
-        return cls.checkin(member, event, checkin_time)
-
     @classmethod
     def get_member_history(cls, member: Member) -> Dict[str, List[CheckIn]]:
         events_member_participated = EventController.get_events_member_participated(member)
