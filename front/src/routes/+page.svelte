@@ -108,7 +108,9 @@
 			<div class={`flex items-center gap-3 px-4 py-2.5 rounded-xl ${i === 0 ? 'bg-emerald-500' : ''}`}>
 				<span class="text-xs font-medium {i === 0 ? 'text-indigo-700' : 'text-gray-400'} w-5">{i + 1}º</span>
 				<span class="flex-1 text-sm {i === 0 ? 'font-semibold text-indigo-900' : 'text-gray-700'}">{entry.name}</span>
-				<span class="text-sm font-medium {i === 0 ? 'text-indigo-900' : 'text-gray-700'}">{entry.score}</span>
+				{#if entry.score > 0}
+					<span class="text-sm font-medium {i === 0 ? 'text-indigo-900' : 'text-gray-700'}">{entry.score}</span>				
+				{/if}
 			</div>
 			{/each}
 		</div>

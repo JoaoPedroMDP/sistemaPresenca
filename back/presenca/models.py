@@ -234,15 +234,17 @@ class TimeScoreRules(Base):
 
     @classmethod
     def get_points_for_time_in_event(cls, event, checkin_time: datetime) -> float:
+        # Evento sem regras de pontuação (ou checkin fora de todas as faixas)
+        # vale 0 pontos: checkin puro, sem placar obrigatório
         tz_converted = checkin_time.astimezone(timezone.get_current_timezone())
         only_time = tz_converted.time()
-        timescore = cls.objects.get(
+        timescore = cls.objects.filter(
             event=event,
             start_time__lte=only_time,
             end_time__gte=only_time
-        )
+        ).first()
 
-        return timescore.points
+        return timescore.points if timescore else 0.0
 
 
 class Config(Base):

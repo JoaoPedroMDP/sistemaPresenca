@@ -54,6 +54,40 @@ def test_scoreboard_sums_and_orders_by_score(db):
     ]
 
 
+def test_event_without_rules_allows_checkin_with_zero_points(db):
+    event = Event.objects.create(
+        name="Evento Sem Placar",
+        start=timezone.now() - timedelta(days=30),
+        end=timezone.now() + timedelta(days=30),
+    )
+    member = Member.objects.create(name="Visitante")
+
+    from presenca.controllers.checkin_controller import CheckinController
+
+    points = CheckinController.checkin(member, event, timezone.now())
+
+    assert points == 0.0
+    assert CheckIn.objects.filter(member=member, event=event).count() == 1
+    assert ScoreController.get_scoreboard_for_event(event) == [
+        {"name": "Visitante", "score": 0.0}
+    ]
+
+
+def test_checkin_outside_all_rule_ranges_scores_zero(db):
+    event = Event.objects.create(
+        name="Evento Faixa Curta",
+        start=timezone.now() - timedelta(days=30),
+        end=timezone.now() + timedelta(days=30),
+    )
+    TimeScoreRules.objects.create(
+        event=event, start_time=time(9, 0), end_time=time(10, 0), points=100
+    )
+
+    points = TimeScoreRules.get_points_for_time_in_event(event, _local_datetime(11, 0))
+
+    assert points == 0.0
+
+
 def test_didnt_checkin_today_excludes_member_with_checkin(db, event, member):
     other = Member.objects.create(name="Sem Presença")
     CheckIn.objects.create(member=member, event=event, date=timezone.now())
