@@ -1,3 +1,10 @@
+## 1.0.1 (2026-07-18)
+
+### Fix
+
+- Agora novos eventos sem regras de pontuação atreladas não travam na hora do checkin
+- Agora commitizen sempre cria annotated tags
+
 ## 1.0.0 (2026-07-18)
 
 ### Feat
