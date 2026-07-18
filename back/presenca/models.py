@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import uuid
 
 from django.contrib.auth.models import User
@@ -7,6 +7,7 @@ from django.db.utils import IntegrityError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 import unidecode
+
 
 class Base(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -74,10 +75,12 @@ class Event(Base):
 class Code(Base):
     """
         Código de acesso para check-in em um evento.
+
+        Um código é rotacionado a cada rotation_seconds() (Config
+        CODE_ROTATION_SECONDS) e vale por validity_seconds(). Várias
+        pessoas podem usar o mesmo código.
     """
     code = models.CharField(max_length=100, unique=True)
-    used = models.DateTimeField(blank=True, null=True)
-    used_by = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
     class Meta: # type: ignore[misc]
@@ -91,21 +94,43 @@ class Code(Base):
         return cls.objects.create(code=str(uuid.uuid4()), event=event)
 
     @classmethod
-    def get_unused_for_event(cls, event):
-        unused = cls.objects.filter(used__isnull=True, event=event)
+    def latest_for_event_newer_than(cls, event, max_age_seconds: int):
+        threshold = timezone.now() - timedelta(seconds=max_age_seconds)
+        return cls.objects.filter(
+            event=event,
+            created_at__gte=threshold
+        ).order_by("-created_at").first()
 
-        if len(unused) > 0:
-            return unused[0]
+    ROTATION_CONFIG_KEY = "CODE_ROTATION_SECONDS"
+    # Folga além da rotação, para quem escaneia perto da troca
+    VALIDITY_GRACE_SECONDS = 20
 
-        return None
+    @classmethod
+    def rotation_seconds(cls) -> int:
+        # get_or_create: se a linha for apagada no admin, renasce aqui
+        config, _ = Config.objects.get_or_create(
+            key=cls.ROTATION_CONFIG_KEY,
+            defaults={"value": "60", "type": Config.Type.INTEGER},
+        )
+        return config.coerce()
 
-    def mark_as_used(self):
-        self.used = timezone.now()
-        self.save()
+    @classmethod
+    def validity_seconds(cls) -> int:
+        return cls.rotation_seconds() + cls.VALIDITY_GRACE_SECONDS
 
-    def assign_member(self, member):
-        self.used_by = member
-        self.save()
+    def is_valid(self) -> bool:
+        threshold = timezone.now() - timedelta(seconds=self.validity_seconds())
+        return self.created_at >= threshold
+
+    def expires_at(self) -> datetime:
+        return self.created_at + timedelta(seconds=self.validity_seconds())
+
+    def rotates_at(self) -> datetime:
+        """
+            Quando este código sai da tela. É o que o painel exibe como
+            "expiração": a folga de validade além da rotação fica invisível.
+        """
+        return self.created_at + timedelta(seconds=self.rotation_seconds())
 
 
 class CheckIn(Base):
@@ -220,12 +245,22 @@ class TimeScoreRules(Base):
         return timescore.points
 
 
-class Configs(Base):
+class Config(Base):
     """
-        Configurações gerais do sistema.
+        Variáveis de ambiente configuráveis em tempo de execução pelo admin.
+
+        O valor é armazenado como texto e convertido para o tipo configurado
+        na linha via coerce().
     """
+    class Type(models.TextChoices):
+        STRING = "str", _("Texto")
+        INTEGER = "int", _("Inteiro")
+        FLOAT = "float", _("Decimal")
+        BOOLEAN = "bool", _("Booleano")
+
     key = models.CharField(max_length=100, unique=True)
     value = models.CharField(max_length=500)
+    type = models.CharField(max_length=10, choices=Type.choices, default=Type.STRING)
 
     class Meta: # type: ignore[misc]
         verbose_name = _("Configuração")
@@ -233,3 +268,19 @@ class Configs(Base):
 
     def __str__(self):
         return f"{self.key}: {self.value}"
+
+    def coerce(self):
+        coercers = {
+            self.Type.STRING: str,
+            self.Type.INTEGER: int,
+            self.Type.FLOAT: float,
+            self.Type.BOOLEAN: lambda v: v.strip().lower() in ("true", "1", "sim", "yes"),
+        }
+        return coercers[self.Type(self.type)](self.value)
+
+    @classmethod
+    def get_value(cls, key: str, default=None):
+        try:
+            return cls.objects.get(key=key).coerce()
+        except cls.DoesNotExist:
+            return default

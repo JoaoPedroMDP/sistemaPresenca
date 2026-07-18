@@ -1,0 +1,18 @@
+services:
+  back:
+    build:
+      context: ./back
+      dockerfile: ../docker/Dockerfile.back
+    working_dir: /app/back
+    command: pytest -q ../tests
+    volumes:
+      - ./:/app
+      - back_test_venv:/app/.venv
+    environment:
+      - UV_PROJECT_ENVIRONMENT=/app/.venv
+      - DJANGO_DB_NAME=/tmp/sistema-presenca-test.sqlite3
+      - DJANGO_DEBUG=true
+      - ALLOWED_HOSTS=testserver,localhost,127.0.0.1
+
+volumes:
+  back_test_venv:

@@ -12,6 +12,8 @@ interface RawPayload {
 
 interface NewCodePayload extends RawPayload {
     code: string;
+    // Vem em isoformat do python
+    expiresAt: string;
 }
 
 interface CheckinPayload extends RawPayload {

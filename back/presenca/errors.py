@@ -1,3 +1,2 @@
-class UsedCodeError(Exception):
+class ExpiredCodeError(Exception):
     pass
-

@@ -7,7 +7,7 @@ from django.http import HttpRequest
 from django.utils.formats import date_format
 from django.utils import timezone
 
-from presenca.models import CheckIn, Code, Configs, Event, TimeScoreRules, Member, Score, Scoreboard
+from presenca.models import CheckIn, Code, Config, Event, TimeScoreRules, Member, Score, Scoreboard
 
 
 class HasMemberList(admin.ModelAdmin):
@@ -51,7 +51,7 @@ class TimeScoreRulesAdmin(admin.ModelAdmin):
 
 
 class CodeAdmin(admin.ModelAdmin):
-    list_display = ("code", "used", "created_at")
+    list_display = ("code", "event", "created_at")
     search_fields = ("code",)
 
 
@@ -68,8 +68,8 @@ class MemberAdmin(admin.ModelAdmin):
     ordering = ("name","birthday")
 
 
-class ConfigsAdmin(admin.ModelAdmin):
-    list_display = ("key", "value")
+class ConfigAdmin(admin.ModelAdmin):
+    list_display = ("key", "value", "type")
     search_fields = ("key", "value")
 
 
@@ -81,4 +81,4 @@ admin.site.register(Scoreboard)
 admin.site.register(Score, ScoreAdmin)
 admin.site.register(Event)
 admin.site.register(TimeScoreRules, TimeScoreRulesAdmin)
-admin.site.register(Configs, ConfigsAdmin)
+admin.site.register(Config, ConfigAdmin)

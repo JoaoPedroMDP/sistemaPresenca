@@ -3,13 +3,13 @@ import logging
 from typing import Dict, List
 
 from django.http import JsonResponse
+from django.utils import timezone
 from ninja import Router
 from ninja.security import SessionAuth
 
 from presenca.controllers.checkin_controller import CheckinController
 from presenca.controllers.code_controller import CodeController
-from presenca.controllers.ws_controller import WsController
-from presenca.errors import UsedCodeError
+from presenca.errors import ExpiredCodeError
 from presenca.models import Code, Event, Member
 
 checkin_router = Router()
@@ -22,13 +22,12 @@ def get_pending_members(request, code_str: str):
     lgr.info(f"Buscando membros que ainda não fizeram check-in. Código: '{code_str}'")
     try:
         code = Code.objects.get(code=code_str)
-        CodeController.use_code(code)
-        WsController.send_new_code_for_event(code.event)
-    except UsedCodeError:
-        lgr.info(f"Código '{code_str}' já foi usado. Retornando erro para o cliente.")
+        CodeController.validate_code(code)
+    except ExpiredCodeError:
+        lgr.info(f"Código '{code_str}' expirado. Retornando erro para o cliente.")
         return JsonResponse({
             "error_code": 400,
-            "error": "Este código já foi usado. Escaneie o QR code novamente.",
+            "error": "Este código expirou. Escaneie o QR code novamente.",
         }, status=400)
     except Code.DoesNotExist:
         lgr.info(f"Código '{code_str}' não encontrado no banco. Retornando erro para o cliente.")
@@ -87,33 +86,27 @@ def get_checkins_today(request, event_name: str):
 def checkin(request, code_str: str, m_id: int):
     lgr.info(f"/checkin/{code_str}/{m_id} - INICIO")
     lgr.info(f"Check-in com código '{code_str}' e ID de membro '{m_id}'")
-    member = Member.objects.get(id=m_id)
-    code = Code.objects.get(code=code_str)
-
-    if not member:
+    try:
+        member = Member.objects.get(id=m_id)
+    except Member.DoesNotExist:
         return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
 
-    if not code:
+    try:
+        code = Code.objects.get(code=code_str)
+    except Code.DoesNotExist:
         return JsonResponse({"error_code": 404, "error": "Código não encontrado no banco..."}, status=404)
 
-    if not code.used:
-        lgr.warning(
-            f"Código {code_str} não foi marcado como usado, mas chegou na rota de checkin."
-        )
+    try:
+        CodeController.validate_code(code)
+    except ExpiredCodeError:
         return JsonResponse({
             "error_code": 400,
-            "error": "Problema com o código. Escaneie o QR code novamente.",
+            "error": "Este código expirou. Escaneie o QR code novamente.",
         }, status=400)
 
-    if code.used_by and code.used_by != member:
-        return JsonResponse({
-            "error_code": 400,
-            "error": "Este código já foi usado por outro membro. Escaneie o QR code novamente.",
-        }, status=400)
+    checkin_time = timezone.now()
+    points = CheckinController.checkin_sabbath(member, checkin_time)
 
-    points = CheckinController.checkin_sabbath(member, code.used)
-    code.assign_member(member)
-
-    lgr.info(f"Membro '{member.name}' ganhou {points} pontos por ter feito checkin às {code.used}.")
+    lgr.info(f"Membro '{member.name}' ganhou {points} pontos por ter feito checkin às {checkin_time}.")
     lgr.info(f"/checkin/{code_str}/{m_id} - FIM")
     return JsonResponse({"message": f"Presença marcada!", "points": points}, status=200)

@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from presenca.controllers.code_controller import CodeController
-from presenca.models import Member, Event
+from presenca.models import Code, Member, Event
 
 
 lgr = logging.getLogger(__name__)
@@ -26,13 +26,23 @@ class WsController:
         async_to_sync(cls._get_cl().group_send)(group_name, message)
 
     @classmethod
-    def send_new_code_for_event(cls, event: Event):
-        code = CodeController.get_unused_code(event)
+    def send_current_code_for_event(cls, event: Event):
+        code = CodeController.get_current_code(event)
+        cls._send_code(event, code)
+
+    @classmethod
+    def rotate_code_for_event(cls, event: Event):
+        code = CodeController.rotate_code(event)
+        cls._send_code(event, code)
+
+    @classmethod
+    def _send_code(cls, event: Event, code: Code):
         cls.group_send(
             event.as_websocket_group_name(),
             {
                 "type": "newCode",
-                "code": code.code
+                "code": code.code,
+                "expiresAt": code.rotates_at().isoformat()
             }
         )
     

@@ -34,6 +34,18 @@ class CheckinController:
 
     @staticmethod
     def checkin(member: Member, event: Event, checkin_time: datetime):
+        # Idempotente por dia: segundo checkin no mesmo dia só devolve os
+        # pontos do primeiro, sem criar registro nem notificar o painel
+        existing = CheckIn.objects.filter(
+            member=member,
+            event=event,
+            date__date=timezone.localtime(checkin_time).date()
+        ).first()
+        if existing:
+            points = TimeScoreRules.get_points_for_time_in_event(event, existing.date)
+            lgr.info(f"{member.name} já tinha checkin hoje no evento {event.name}. Pontuação mantida: {points}")
+            return points
+
         CheckIn.create_idempotent(member, event, checkin_time)
         WsController.send_member_checkin_for_event(member, event)
 

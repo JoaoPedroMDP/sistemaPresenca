@@ -4,6 +4,7 @@ from asgiref.sync import async_to_sync
 
 from channels.generic.websocket import JsonWebsocketConsumer
 
+from presenca.code_timer import CodeTimerRegistry
 from presenca.models import Event
 from presenca.controllers.ws_controller import WsController
 
@@ -43,6 +44,8 @@ class Consumer(CustomJsonConsumer):
 
     def disconnect(self, code):
         lgr.info(f"Websocket disconnected: {code}")
+        if self.group_name:
+            CodeTimerRegistry.remove_listener(self.group_name)
         self.exit_group()
 
     def receive_json(self, content, **kwargs):
@@ -52,7 +55,8 @@ class Consumer(CustomJsonConsumer):
             event = Event.objects.get(name=content.get("event"))
             success = self.add_group(event)
             if success:
-                WsController.send_new_code_for_event(event)
+                CodeTimerRegistry.add_listener(event)
+                WsController.send_current_code_for_event(event)
                 return
             
             lgr.error(f"Falha ao adicionar ao evento {event}. Verifique os logs para mais detalhes.")
@@ -69,7 +73,8 @@ class Consumer(CustomJsonConsumer):
         code = event['code']
         self.send_json({
             "type": "newCode",
-            "code": code
+            "code": code,
+            "expiresAt": event["expiresAt"]
         })
 
     def memberCheckin(self, event):

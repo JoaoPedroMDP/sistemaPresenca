@@ -1,7 +1,9 @@
 const store = $state({
     code: undefined as string | undefined,
-    setCode(newCode: string) {
+    expiresAt: undefined as string | undefined,
+    setCode(newCode: string, expiresAt: string) {
         store.code = newCode;
+        store.expiresAt = expiresAt;
     },
     useCode() {
         const code = store.code;

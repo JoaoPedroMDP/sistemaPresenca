@@ -1,24 +1,26 @@
-from presenca.errors import UsedCodeError
+from presenca.errors import ExpiredCodeError
 from presenca.models import Code, Event
 
 
 class CodeController:
     @staticmethod
-    def get_unused_code(event: Event) -> Code:
-        unused = Code.get_unused_for_event(event)
-        if not unused:
-            unused = Code.create_for_event(event)
+    def get_current_code(event: Event) -> Code:
+        """
+            Retorna o código mais recente do evento, criando um novo se o
+            último já passou da idade de rotação (evita exibir um QR
+            prestes a expirar).
+        """
+        current = Code.latest_for_event_newer_than(event, Code.rotation_seconds())
+        if not current:
+            current = Code.create_for_event(event)
 
-        return unused
-
-    @classmethod
-    def get_unused_code_event_name(cls, event_name: str) -> Code:
-        event: Event = Event.objects.get(name=event_name)
-        return cls.get_unused_code(event)
+        return current
 
     @staticmethod
-    def use_code(code: Code) -> None:
-        if code.used:
-            raise UsedCodeError("Code already used")
+    def rotate_code(event: Event) -> Code:
+        return Code.create_for_event(event)
 
-        code.mark_as_used()
+    @staticmethod
+    def validate_code(code: Code) -> None:
+        if not code.is_valid():
+            raise ExpiredCodeError("Code expired")

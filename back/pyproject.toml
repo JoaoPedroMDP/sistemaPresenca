@@ -11,6 +11,8 @@ dependencies = [
     "django-extensions>=4.1",
     "django-ninja>=1.6.2",
     "ipdb>=0.13.13",
+    "pytest>=8.3.5",
+    "pytest-django>=4.11.1",
     "python-decouple>=3.8",
     "unidecode>=1.4.0",
 ]
