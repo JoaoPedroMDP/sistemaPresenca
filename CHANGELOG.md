@@ -1,3 +1,9 @@
+## 1.0.2 (2026-07-18)
+
+### Fix
+
+- Independente do evento com qrcode, ia pra escola sabatina
+
 ## 1.0.1 (2026-07-18)
 
 ### Fix
