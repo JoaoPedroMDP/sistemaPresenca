@@ -1,3 +1,9 @@
+## 1.1.1 (2026-09-12)
+
+### Fix
+
+- bug visual no modo tablet
+
 ## 1.1.0 (2026-09-12)
 
 ### Feat
