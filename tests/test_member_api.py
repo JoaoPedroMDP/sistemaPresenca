@@ -69,3 +69,42 @@ def test_member_photo_upload_updates_member_photo(authenticated_client, member):
     member.refresh_from_db()
     assert member.photo.name.startswith("images/members/")
     assert response.json()["photo"] is not None
+
+def test_member_photo_without_file_returns_400(authenticated_client, member):
+    response = authenticated_client.post("/api/member/photo", data={})
+
+    assert response.status_code == 400
+    member.refresh_from_db()
+    assert not member.photo
+
+
+def test_member_photo_rejects_non_image(authenticated_client, member):
+    upload = SimpleUploadedFile(
+        name="notes.txt", content=b"texto", content_type="text/plain"
+    )
+
+    response = authenticated_client.post("/api/member/photo", data={"photo": upload})
+
+    assert response.status_code == 400
+    assert "imagem" in response.json()["error"]
+
+
+def test_member_photo_rejects_files_over_limit(authenticated_client, member):
+    from presenca.api.member import PHOTO_MAX_BYTES
+
+    upload = SimpleUploadedFile(
+        name="huge.png", content=b"0" * (PHOTO_MAX_BYTES + 1), content_type="image/png"
+    )
+
+    response = authenticated_client.post("/api/member/photo", data={"photo": upload})
+
+    assert response.status_code == 400
+    assert "5 MB" in response.json()["error"]
+
+
+def test_member_photo_without_member_returns_404(authenticated_client, db):
+    upload = SimpleUploadedFile(name="p.png", content=b"x", content_type="image/png")
+
+    response = authenticated_client.post("/api/member/photo", data={"photo": upload})
+
+    assert response.status_code == 404

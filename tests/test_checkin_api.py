@@ -80,3 +80,35 @@ def test_member_checked_in_leaves_pending_list(client, code, member):
 
     assert response.status_code == 200
     assert response.json() == {"members": []}
+
+
+def test_already_with_unknown_event_returns_404(client, db):
+    response = client.get("/api/checkin/already/Evento%20Inexistente")
+
+    assert response.status_code == 404
+    assert "não encontrado" in response.json()["error"]
+
+
+def test_already_lists_members_checked_in_today(client, code, member):
+    client.post(f"/api/checkin/{code.code}/{member.id}")
+
+    response = client.get(f"/api/checkin/already/{code.event.name}")
+
+    assert response.status_code == 200
+    assert [m["name"] for m in response.json()["members"]] == [member.name]
+
+
+def test_history_without_member_returns_404(authenticated_client, db):
+    response = authenticated_client.get("/api/checkin/history")
+
+    assert response.status_code == 404
+
+
+def test_history_returns_checkins_grouped_by_event(authenticated_client, code, member):
+    authenticated_client.post(f"/api/checkin/{code.code}/{member.id}")
+
+    response = authenticated_client.get("/api/checkin/history")
+
+    assert response.status_code == 200
+    assert list(response.json().keys()) == [code.event.name]
+    assert len(response.json()[code.event.name]) == 1

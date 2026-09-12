@@ -52,8 +52,13 @@ def get_pending_members(request, code_str: str):
 )
 def get_history(request):
     lgr.info(f"/checkin/history - INICIO")
-    
-    member = Member.objects.get(user=request.user)
+
+    try:
+        member = Member.objects.get(user=request.user)
+    except Member.DoesNotExist:
+        lgr.warning(f"Usuário '{request.user.username}' não tem membro associado.")
+        return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
+
     history = CheckinController.get_member_history(member)
     
     return_data = {}
@@ -70,8 +75,13 @@ def get_history(request):
 )
 def get_checkins_today(request, event_name: str):
     lgr.info(f"/checkin/already/{event_name} - INICIO")
-    
-    event = Event.objects.get(name=event_name)
+
+    try:
+        event = Event.objects.get(name=event_name)
+    except Event.DoesNotExist:
+        lgr.warning(f"Evento '{event_name}' não encontrado.")
+        return JsonResponse({"error_code": 404, "error": f"Evento '{event_name}' não encontrado."}, status=404)
+
     checkins = CheckinController.get_checkins_today_for_event(event)
     members = [c.member for c in checkins]
     

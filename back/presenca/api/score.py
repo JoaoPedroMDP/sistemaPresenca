@@ -1,5 +1,6 @@
 import logging
 
+from django.http import JsonResponse
 from ninja import Router
 from ninja.security import SessionAuth
 
@@ -13,8 +14,13 @@ lgr = logging.getLogger(__name__)
 @score_router.get("/per-event", auth=SessionAuth())
 def get_user_score_per_event(request):
     lgr.info(f"/score/per-event - INICIO")
-    
-    member = Member.objects.get(user=request.user)
+
+    try:
+        member = Member.objects.get(user=request.user)
+    except Member.DoesNotExist:
+        lgr.warning(f"Usuário '{request.user.username}' não tem membro associado.")
+        return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
+
     events = Event.objects.filter(checkin__member__id=member.id).distinct()
     return_data = {}
     for e in events:

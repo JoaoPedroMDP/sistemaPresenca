@@ -36,27 +36,34 @@ def me(request):
         lgr.error(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
         return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
 
-    if not member:
-        lgr.info(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
-        return_data = {"error_code": 404, "error": "Membro não encontrado no banco..."}
-    else:
-        return_data = member
-
     lgr.info(f"/member/me - FIM")
-    return return_data
+    return member
+
+
+# Limite do upload de foto de perfil. O front já recorta para 400x400 JPEG,
+# então qualquer coisa perto disso é um cliente fora do fluxo normal.
+PHOTO_MAX_BYTES = 5 * 1024 * 1024
 
 
 @member_router.post("/photo", auth=SessionAuth(), response=MeResponse)
 def set_photo(request):
     lgr.info(f"/member/photo - INICIO")
-    member = Member.objects.get(user=request.user)
+    try:
+        member = Member.objects.get(user=request.user)
+    except Member.DoesNotExist:
+        lgr.warning(f"Usuário '{request.user.username}' não tem membro associado.")
+        return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
 
-    if not member:
-        lgr.info(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
-        lgr.info(f"/member/photo - FIM")
-        return {"error_code": 404, "error": "Membro não encontrado no banco..."}
-    
     photo = request.FILES.get("photo")
+    if photo is None:
+        return JsonResponse({"error_code": 400, "error": "Envie o arquivo no campo 'photo'."}, status=400)
+
+    if not (photo.content_type or "").startswith("image/"):
+        return JsonResponse({"error_code": 400, "error": "O arquivo precisa ser uma imagem."}, status=400)
+
+    if photo.size > PHOTO_MAX_BYTES:
+        return JsonResponse({"error_code": 400, "error": "Imagem acima de 5 MB."}, status=400)
+
     member.photo.delete(save=False)  # Exclui a foto antiga, se existir
     member.photo.save(member.slug() + "_profile_" + str(timezone.now()), photo)
     member.save()

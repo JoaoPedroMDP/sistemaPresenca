@@ -40,7 +40,7 @@ Novo ouvinte recebe `CodeController.get_current_code`, que reutiliza um código 
 
 `back/presenca/consumer.py`, `receive_json`: `Event.objects.get(name=...)` sem tratamento de `DoesNotExist`. O front aceita qualquer texto no input; um nome errado fecha o socket com exceção no log e o painel fica em "Aguardando código..." sem feedback. Nomes com acento ou pontuação passam no `get` mas falham no `group_add` (Channels só aceita `[a-zA-Z0-9\-_.]`), e o cliente também não é avisado. Responder uma mensagem de erro no socket e usar `slugify` (com `unidecode`) em `as_websocket_group_name`.
 
-### A6. Erros não tratados viram 500
+### A6. Erros não tratados viram 500 — **corrigido**
 
 - `GET /api/checkin/already/{event_name}`: `Event.objects.get` sem `try`.
 - `GET /api/checkin/history` e `GET /api/score/per-event`: `Member.objects.get(user=request.user)` sem `try` (usuário sem membro, caso já previsto em `/member/me`).
@@ -164,7 +164,7 @@ Todas as rotas logam `INICIO`/`FIM` em `INFO` com f-strings avaliadas mesmo com 
 
 ### B6. Testes ausentes
 
-Sem cobertura para: rotas de auth, `history`, `per-event`, `already`, `import_checkins`/`export_checkins`, ação `revoke` do admin, concorrência da ativação de `Device`, e o caso do A1. Nenhum teste de front. `pytest.ini` sem `--reuse-db`/`-p no:cacheprovider`, e o `.gitignore` da raiz não ignora `.pytest_cache`.
+Sem cobertura para: rotas de auth, `import_checkins`/`export_checkins`, ação `revoke` do admin, concorrência da ativação de `Device`, e o caso do A1. Nenhum teste de front. `pytest.ini` sem `--reuse-db`/`-p no:cacheprovider`, e o `.gitignore` da raiz não ignora `.pytest_cache`.
 
 ### B7. Migração importa management command
 

@@ -107,3 +107,18 @@ def test_didnt_checkin_today_is_scoped_per_event(db, event, member):
 
     assert member not in Member.didnt_checkin_today(event)
     assert member in Member.didnt_checkin_today(other_event)
+
+
+def test_per_event_without_member_returns_404(authenticated_client, db):
+    response = authenticated_client.get("/api/score/per-event")
+
+    assert response.status_code == 404
+
+
+def test_per_event_sums_points_of_logged_member(authenticated_client, code, member):
+    authenticated_client.post(f"/api/checkin/{code.code}/{member.id}")
+
+    response = authenticated_client.get("/api/score/per-event")
+
+    assert response.status_code == 200
+    assert response.json() == {code.event.name: 50.0}
