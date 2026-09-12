@@ -29,14 +29,14 @@ class MeResponse(Schema):
 
 @member_router.get("/me", auth=SessionAuth(), response=MeResponse)
 def me(request):
-    lgr.info(f"/member/me - INICIO")
+    lgr.debug(f"/member/me - INICIO")
     try:
         member = Member.objects.get(user=request.user)
     except Member.DoesNotExist:
         lgr.error(f"Membro para usuário '{request.user.username}' não encontrado no banco.")
         return JsonResponse({"error_code": 404, "error": "Membro não encontrado no banco..."}, status=404)
 
-    lgr.info(f"/member/me - FIM")
+    lgr.debug(f"/member/me - FIM")
     return member
 
 
@@ -47,7 +47,7 @@ PHOTO_MAX_BYTES = 5 * 1024 * 1024
 
 @member_router.post("/photo", auth=SessionAuth(), response=MeResponse)
 def set_photo(request):
-    lgr.info(f"/member/photo - INICIO")
+    lgr.debug(f"/member/photo - INICIO")
     try:
         member = Member.objects.get(user=request.user)
     except Member.DoesNotExist:
@@ -68,5 +68,5 @@ def set_photo(request):
     member.photo.save(member.slug() + "_profile_" + str(timezone.now()), photo)
     member.save()
 
-    lgr.info(f"/member/photo - FIM")
+    lgr.debug(f"/member/photo - FIM")
     return member

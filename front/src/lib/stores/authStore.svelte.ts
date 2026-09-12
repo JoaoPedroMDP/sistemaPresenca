@@ -1,15 +1,12 @@
 import { goto } from "$app/navigation";
 import { callLogged, callLogin, callLogout } from "$lib/api/authApi.svelte";
 import type ApiResponse from "$lib/api/index.svelte";
-import { LSLoadAuth, LSSaveAuth, LSClearAuth, type Auth } from "$lib/storage/authStorage";
-
-const DAY = 60 * 60 * 24 * 1000; // Dia em milissegundos
+import { LSSaveAuth, LSClearAuth, type Auth } from "$lib/storage/authStorage";
 
 interface AuthStoreT {
     auth: Auth | null;
     login(username: string, password: string): Promise<{success: boolean, message: string}>;
     logout(): Promise<void>;
-    isLogged(): boolean;
     getLoggedFromServer(): Promise<boolean>;
     goToLogin(): Promise<void>;
 }
@@ -33,20 +30,6 @@ const store: AuthStoreT = $state<AuthStoreT>({
         await callLogout();
         LSClearAuth();
         store.auth = null;
-    },
-    isLogged(): boolean {
-        if(!store.auth){
-            let loadedAuth = LSLoadAuth();
-            if(!loadedAuth){
-                return false;
-            }
-            store.auth = loadedAuth;
-        }
-
-        if(store.auth.loggedAt){
-            return true;
-        }
-        return false;
     },
     async getLoggedFromServer(): Promise<boolean> {
         let response = await callLogged();

@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+
 from asgiref.sync import async_to_sync
 
 from channels.generic.websocket import JsonWebsocketConsumer
@@ -80,9 +80,6 @@ class Consumer(CustomJsonConsumer):
 
     def send_error(self, message: str):
         self.send_json({"type": "error", "message": message})
-
-    def send_json(self, content: Any, close: bool = False) -> None:
-        return super().send_json(content, close)
 
     def newCode(self, event):
         lgr.debug("Mensagem recebida: newCode")

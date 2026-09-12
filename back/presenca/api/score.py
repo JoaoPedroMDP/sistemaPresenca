@@ -13,7 +13,7 @@ lgr = logging.getLogger(__name__)
 
 @score_router.get("/per-event", auth=SessionAuth())
 def get_user_score_per_event(request):
-    lgr.info(f"/score/per-event - INICIO")
+    lgr.debug(f"/score/per-event - INICIO")
 
     try:
         member = Member.objects.get(user=request.user)
@@ -27,13 +27,13 @@ def get_user_score_per_event(request):
         return_data[e.name] = ScoreController.get_user_score_for_event(member, e)
 
     lgr.info(f"Retornando pontuação de {member.name} nos eventos {[e.name for e in events]}.")
-    lgr.info(f"/score/per-event - FIM")
+    lgr.debug(f"/score/per-event - FIM")
     return return_data
 
 
 @score_router.get("/event/{event_name}", auth=None)
 def get_scoreboard_for_event(request, event_name: str):
-    lgr.info(f"/score/event/{event_name} - INICIO")
+    lgr.debug(f"/score/event/{event_name} - INICIO")
     
     try:
         event = Event.objects.get(name=event_name)
@@ -43,5 +43,5 @@ def get_scoreboard_for_event(request, event_name: str):
 
     scoreboard = ScoreController.get_scoreboard_for_event(event)
     lgr.info(f"Retornando placar para o evento '{event_name}'.")
-    lgr.info(f"/score/event/{event_name} - FIM")
+    lgr.debug(f"/score/event/{event_name} - FIM")
     return {"success": True, "data": scoreboard}

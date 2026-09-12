@@ -65,7 +65,7 @@ def activate_device(request, code_str: str):
         Resgate do código pelo aparelho que leu o QR mostrado no admin.
         Uso único: só o primeiro aparelho é liberado.
     """
-    lgr.info(f"/checkin/device/{code_str}/activate - INICIO")
+    lgr.debug(f"/checkin/device/{code_str}/activate - INICIO")
 
     device, error = _device_or_error(code_str)
     if error:
@@ -91,7 +91,7 @@ def activate_device(request, code_str: str):
         }, status=400)
 
     lgr.info(f"Dispositivo '{device}' ativado para o evento '{device.event.name}'.")
-    lgr.info(f"/checkin/device/{code_str}/activate - FIM")
+    lgr.debug(f"/checkin/device/{code_str}/activate - FIM")
     return JsonResponse({
         "event": device.event.name,
         "label": device.label,
@@ -101,7 +101,7 @@ def activate_device(request, code_str: str):
 
 @device_router.get("/{code_str}/pending")
 def get_pending_members(request, code_str: str):
-    lgr.info(f"/checkin/device/{code_str}/pending - INICIO")
+    lgr.debug(f"/checkin/device/{code_str}/pending - INICIO")
 
     device, error = _validated_device_or_error(code_str)
     if error:
@@ -113,7 +113,7 @@ def get_pending_members(request, code_str: str):
     ]
 
     lgr.info(f"{len(membs)} membros pendentes no evento '{device.event.name}'")
-    lgr.info(f"/checkin/device/{code_str}/pending - FIM")
+    lgr.debug(f"/checkin/device/{code_str}/pending - FIM")
     return JsonResponse({"event": device.event.name, "members": membs}, status=200)
 
 
@@ -123,7 +123,7 @@ def device_checkin(request, code_str: str, m_id: int):
         Check-in feito no aparelho liberado. Sem QR rotativo: a proteção é a
         posse do código do dispositivo.
     """
-    lgr.info(f"/checkin/device/{code_str}/{m_id} - INICIO")
+    lgr.debug(f"/checkin/device/{code_str}/{m_id} - INICIO")
 
     device, error = _validated_device_or_error(code_str)
     if error:
@@ -138,5 +138,5 @@ def device_checkin(request, code_str: str, m_id: int):
     points = CheckinController.checkin(member, device.event, checkin_time)
 
     lgr.info(f"Membro '{member.name}' ganhou {points} pontos pelo dispositivo '{device}'.")
-    lgr.info(f"/checkin/device/{code_str}/{m_id} - FIM")
+    lgr.debug(f"/checkin/device/{code_str}/{m_id} - FIM")
     return JsonResponse({"message": "Presença marcada!", "points": points}, status=200)

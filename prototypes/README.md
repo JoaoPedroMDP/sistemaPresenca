@@ -14,7 +14,7 @@ Cada arquivo é uma tela isolada, fiel ao app — sem menus ou controles extras.
 | `04-login.html` | `/login` | Login por usuário e senha |
 | `05-perfil.html` | `/me` | Perfil, foto com recorte, histórico e pontos |
 | `06-dispositivo-lista.html` | `/checkin/device/[code]` | **Novo** — grade de membros pendentes com busca; na primeira visita, ativa o aparelho |
-| `07-dispositivo-confirmacao.html` | `/checkin/device/[code]/confirmar` | **Novo** — confirma identidade e registra presença |
+| `07-dispositivo-confirmacao.html` | `/checkin/device/[code]` (estado de confirmação) | **Novo** — confirma identidade e registra presença; no app é um estado da mesma rota, não uma rota à parte |
 
 As telas se ligam entre si igual ao app: o login leva ao perfil, a ativação
 leva à lista, a lista leva à confirmação. Não há tela de digitar código nem
@@ -54,8 +54,8 @@ admin gera código  ──QR──►  lista de pendentes (ativa na 1ª visita)
                                    └──── 3s ──── confirmação
 ```
 
-1. No admin, o responsável cria um código com o modo de dispositivo ligado. O
-   admin mostra o QR Code desse código.
+1. No admin, o responsável cria um `Device` para o evento. A tela de edição
+   mostra o QR Code de ativação.
 2. O tablet escaneia e cai em `/checkin/device/<code>`. O código é resgatado
    uma única vez: não serve para liberar um segundo aparelho. Enquanto isso a
    própria lista mostra "Ativando este dispositivo…".
@@ -96,7 +96,7 @@ rota `/checkin/device/[code]`); o protótipo só encena o fluxo.
   `activated_at` (nulo até o resgate, preenchido por UPDATE condicional, então
   o segundo resgate falha) e `revoked_at` (corta um tablet perdido sem mexer
   nos outros). Validação em `DeviceController`, separada do `CodeController`.
-- **Admin.** Na tela do `Code` com modo de dispositivo ligado, renderizar o QR
+- **Admin.** Na tela de edição do `Device` (`DeviceAdmin`), renderizar o QR
   apontando para `/checkin/device/<code>` — é assim que o código chega ao
   aparelho sem ninguém digitar nada. Só mostrar o QR enquanto o código não foi
   resgatado.

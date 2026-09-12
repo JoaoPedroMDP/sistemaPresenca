@@ -57,7 +57,10 @@ class TimeScoreRulesAdmin(admin.ModelAdmin):
 
 class CodeAdmin(admin.ModelAdmin):
     list_display = ("code", "event", "created_at")
+    list_filter = ("event",)
+    date_hierarchy = "created_at"
     search_fields = ("code",)
+    ordering = ("-created_at",)
 
 
 class DeviceAdmin(admin.ModelAdmin):
@@ -134,9 +137,24 @@ class ScoreAdmin(HasMemberList):
 
 
 class MemberAdmin(admin.ModelAdmin):
-    list_display = ("name", "user", "birthday")
+    list_display = ("name", "user", "birthday", "has_photo")
     search_fields = ("name", "user__username")
     ordering = ("name","birthday")
+
+    @admin.display(description="Foto", boolean=True)
+    def has_photo(self, obj):
+        return bool(obj.photo)
+
+
+class EventAdmin(admin.ModelAdmin):
+    list_display = ("name", "start", "end")
+    search_fields = ("name",)
+    ordering = ("name",)
+
+
+class ScoreboardAdmin(admin.ModelAdmin):
+    list_display = ("name", "created_at")
+    search_fields = ("name",)
 
 
 class ConfigAdmin(admin.ModelAdmin):
@@ -149,8 +167,8 @@ admin.site.register(Code, CodeAdmin)
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(CheckIn, CheckInAdmin)
-admin.site.register(Scoreboard)
+admin.site.register(Scoreboard, ScoreboardAdmin)
 admin.site.register(Score, ScoreAdmin)
-admin.site.register(Event)
+admin.site.register(Event, EventAdmin)
 admin.site.register(TimeScoreRules, TimeScoreRulesAdmin)
 admin.site.register(Config, ConfigAdmin)

@@ -3,6 +3,7 @@ import re
 import uuid
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.utils import IntegrityError
 from django.utils import timezone
@@ -312,6 +313,27 @@ class TimeScoreRules(Base):
 
     def __str__(self):
         return f"{self.event.name} {self.start_time} - {self.end_time}: {self.points} pontos."
+
+    def clean(self):
+        # Chamado pelo admin (full_clean). get_points_for_time_in_event usa
+        # .first(), então faixas sobrepostas dariam um resultado arbitrário.
+        if self.start_time is None or self.end_time is None or self.event_id is None:
+            return
+
+        if self.start_time > self.end_time:
+            raise ValidationError({"end_time": _("O fim da faixa deve ser depois do início.")})
+
+        overlapping = TimeScoreRules.objects.filter(
+            event_id=self.event_id,
+            start_time__lte=self.end_time,
+            end_time__gte=self.start_time,
+        ).exclude(pk=self.pk)
+        if overlapping.exists():
+            other = overlapping.first()
+            raise ValidationError(
+                _("Esta faixa sobrepõe a regra %(start)s - %(end)s do mesmo evento."),
+                params={"start": other.start_time, "end": other.end_time},
+            )
 
     @classmethod
     def get_points_for_time_in_event(cls, event, checkin_time: datetime) -> float:

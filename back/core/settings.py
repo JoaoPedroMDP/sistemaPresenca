@@ -159,7 +159,9 @@ LOGGING = {
     'loggers': {
         'presenca': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            # DEBUG só em desenvolvimento: em produção as linhas de
+            # INICIO/FIM de cada rota não vão para o arquivo
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         },
     },

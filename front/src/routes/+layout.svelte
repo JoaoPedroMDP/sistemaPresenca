@@ -4,6 +4,7 @@
 	import favicon from '$lib/assets/jovensLogoBranca.png';
 	import type { Snippet } from 'svelte';
 	import '@fontsource-variable/readex-pro/wght.css';
+	import '@fontsource/courier-prime/400.css';
     import { LSClearMember } from '$lib/storage/memberStorage';
 
 	const version = __APP_VERSION__;

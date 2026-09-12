@@ -18,7 +18,7 @@ lgr = logging.getLogger(__name__)
 
 @checkin_router.get("/pending/{code_str}")
 def get_pending_members(request, code_str: str):
-    lgr.info(f"/checkin/pending/{code_str} - INICIO")
+    lgr.debug(f"/checkin/pending/{code_str} - INICIO")
     lgr.info(f"Buscando membros que ainda não fizeram check-in. Código: '{code_str}'")
     try:
         code = Code.objects.get(code=code_str)
@@ -42,7 +42,7 @@ def get_pending_members(request, code_str: str):
     ]
 
     lgr.info(f"{len(membs)} membros encontrados")
-    lgr.info(f"/checkin/pending/{code_str} - FIM")
+    lgr.debug(f"/checkin/pending/{code_str} - FIM")
     return JsonResponse({"members": membs}, status=200)
 
 
@@ -51,7 +51,7 @@ def get_pending_members(request, code_str: str):
     "/history", auth=SessionAuth(), response=Dict[str, List[datetime]]
 )
 def get_history(request):
-    lgr.info(f"/checkin/history - INICIO")
+    lgr.debug(f"/checkin/history - INICIO")
 
     try:
         member = Member.objects.get(user=request.user)
@@ -66,7 +66,7 @@ def get_history(request):
         return_data[e] = [c.date for c in history[e]]
 
     lgr.info(f"Histórico de check-ins do membro '{member.name}' retornado com {len(history)} registros.")
-    lgr.info(f"/checkin/history - FIM")
+    lgr.debug(f"/checkin/history - FIM")
     return JsonResponse(return_data, status=200)
 
 
@@ -74,7 +74,7 @@ def get_history(request):
     "/already/{event_name}", response=Dict[str, List[datetime]]
 )
 def get_checkins_today(request, event_name: str):
-    lgr.info(f"/checkin/already/{event_name} - INICIO")
+    lgr.debug(f"/checkin/already/{event_name} - INICIO")
 
     try:
         event = Event.objects.get(name=event_name)
@@ -94,7 +94,7 @@ def get_checkins_today(request, event_name: str):
 
 @checkin_router.post("/{code_str}/{m_id}")
 def checkin(request, code_str: str, m_id: int):
-    lgr.info(f"/checkin/{code_str}/{m_id} - INICIO")
+    lgr.debug(f"/checkin/{code_str}/{m_id} - INICIO")
     lgr.info(f"Check-in com código '{code_str}' e ID de membro '{m_id}'")
     try:
         member = Member.objects.get(id=m_id)
@@ -118,5 +118,5 @@ def checkin(request, code_str: str, m_id: int):
     points = CheckinController.checkin(member, code.event, checkin_time)
 
     lgr.info(f"Membro '{member.name}' ganhou {points} pontos por ter feito checkin às {checkin_time}.")
-    lgr.info(f"/checkin/{code_str}/{m_id} - FIM")
+    lgr.debug(f"/checkin/{code_str}/{m_id} - FIM")
     return JsonResponse({"message": f"Presença marcada!", "points": points}, status=200)

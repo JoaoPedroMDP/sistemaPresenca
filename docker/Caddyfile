@@ -24,13 +24,6 @@
         reverse_proxy back:8000
     }
 
-    handle /cdn/* {
-        uri strip_prefix /cdn
-        reverse_proxy https://unpkg.com {
-            header_up Host unpkg.com
-        }
-    }
-
     handle /media/* {
         root * /app/media
         uri strip_prefix /media

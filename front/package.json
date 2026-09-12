@@ -12,8 +12,6 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
 	"devDependencies": {
-		"@skeletonlabs/skeleton": "^4.15.1",
-		"@skeletonlabs/skeleton-svelte": "^4.15.1",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.50.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
@@ -26,9 +24,9 @@
 	},
 	"dependencies": {
 		"@fontsource-variable/readex-pro": "^5.2.11",
+		"@fontsource/courier-prime": "^5.3.0",
 		"@iconify-json/fa6-solid": "^1.2.4",
 		"@iconify/tailwind4": "^1.2.3",
-		"@svelte-put/qr": "^2.1.2",
-		"qrcode": "^1.5.4"
+		"@svelte-put/qr": "^2.1.2"
 	}
 }

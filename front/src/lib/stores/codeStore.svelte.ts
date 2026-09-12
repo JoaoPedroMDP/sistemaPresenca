@@ -4,11 +4,6 @@ const store = $state({
     setCode(newCode: string, expiresAt: string) {
         store.code = newCode;
         store.expiresAt = expiresAt;
-    },
-    useCode() {
-        const code = store.code;
-        store.code = '';
-        return code;
     }
 })
 

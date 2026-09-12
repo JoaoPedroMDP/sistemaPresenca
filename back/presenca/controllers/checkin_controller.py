@@ -10,8 +10,6 @@ from presenca.controllers.event_controller import EventController
 from presenca.controllers.ws_controller import WsController
 from presenca.models import CheckIn, Event, Member, TimeScoreRules
 
-CHECKIN_BOARD = "Presença"
-
 lgr = logging.getLogger(__name__)
 
 class CheckinController:

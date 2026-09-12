@@ -13,8 +13,6 @@
     let containerHeight = $state(600);
     let animFrame: number;
 
-    let {debug = false} = $props();
-
     let itemElements = new Map<string | number, HTMLElement>();
 
     export function addPhoto({id, name, src}: Photo, extras: Extras) {
@@ -147,12 +145,6 @@
             birthday={item.extras.birthday}
             size={PHOTO_SIZE}
         />
-        {#if debug }
-            <div class="absolute top-0 left-0 flex flex-col">
-                <span class="bg-white text-black">X: {item.x.toFixed(0)}</span>
-                <span class="bg-white text-black">Y: {item.y.toFixed(0)}</span>
-            </div>
-        {/if}
         </div>
     {/each}
 </div>
