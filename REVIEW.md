@@ -94,11 +94,12 @@ Um `Code` por minuto por evento, enquanto houver painel aberto; nada apaga. Em u
 
 ### M10. Fluxo de deploy manual e frágil
 
-- `sendimage.py` rebuilda com `--no-cache`, salva `docker save -o back.tar.gz` (não é gzip, só o nome) e faz `scp` para `root@presenca`; `loadimage.py` faz `docker compose down back` sem `-f`, dependendo de um `compose.yml` que está no `.gitignore`.
-- `docker-compose-*.yml` montam `./db.sqlite3` como arquivo; se não existir, o Docker cria um diretório e o Django falha.
-- `caddy:latest` sem pin. Portas 80/443 publicadas sem site block.
-- Nenhum `healthcheck`; `depends_on` só espera o container subir, não o Daphne ouvir.
-- Não há CI: testes só rodam manualmente.
+- `sendimage.py` rebuilda com `--no-cache`, salva `docker save -o back.tar.gz` (não é gzip, só o nome) e faz `scp` para `root@presenca`; ~~`loadimage.py` faz `docker compose down back` sem `-f`~~ **corrigido**: usa `-f docker-compose-prod.yml` e `up -d --no-deps --force-recreate` no serviço.
+- ~~`docker-compose-*.yml` montam `./db.sqlite3` como arquivo~~ **corrigido**: volume `./data:/app/data` + trava no entrypoint contra banco vazio. Exige mover o `db.sqlite3` para `data/` no servidor antes do `up`.
+- ~~`caddy:latest` sem pin~~ **corrigido** (`caddy:2.10`). Portas 80/443 seguem publicadas sem site block: sem domínio não há o que servir ali; remover as duas linhas de `ports` ou deixar até ter domínio.
+- ~~Nenhum `healthcheck`~~ **corrigido** (TCP na 8000, Caddy espera `service_healthy`).
+- Não há CI: adiado por decisão, ver `FUTURE.md`.
+- `docker-compose-test.yml` monta `./:/app`, o que esconde o `/app/back_entrypoint.sh` copiado na imagem, e o `command: pytest` vira argumento do `ENTRYPOINT`. Provável que o compose de teste não rode como está; precisa de `entrypoint: []` ou de montar o script. Não verificado (sem Docker nesta máquina).
 
 ### M11. Placar do painel não atualiza ao vivo
 

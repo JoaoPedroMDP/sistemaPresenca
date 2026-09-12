@@ -2,17 +2,20 @@ import os
 import sys
 
 
+# Sempre o compose de produção: sem -f o docker procura um compose.yml
+# solto no servidor, que pode estar defasado em relação ao repositório
+COMPOSE = "docker compose -f docker-compose-prod.yml"
+
+
 def main(back: bool, front: bool):
-    # executa docker compose build
+    # Só carrega imagens e recria containers; o servidor não constrói nada
     if back:
         os.system("docker load < /images/back.tar.gz")
-        os.system("docker compose down back")
-        os.system("docker compose up -d back")
+        os.system(f"{COMPOSE} up -d --no-deps --force-recreate back")
 
     if front:
         os.system("docker load < /images/front.tar.gz")
-        os.system("docker compose down front")
-        os.system("docker compose up -d front")
+        os.system(f"{COMPOSE} up -d --no-deps --force-recreate front")
 
 if __name__ == "__main__":
     back = False

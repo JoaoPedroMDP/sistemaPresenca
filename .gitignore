@@ -5,3 +5,4 @@ compose.yml
 db.sqlite3
 *.vscode
 *.pyc
+data/

@@ -8,12 +8,23 @@ services:
     volumes:
       - back_static:/app/staticfiles
       - ./docker/back_entrypoint.sh:/app/back_entrypoint.sh
-      - ./db.sqlite3:/app/db.sqlite3
+      # Diretório, não arquivo: se não existir o Docker cria um diretório
+      # vazio e o Django sobe normalmente (a trava fica no entrypoint)
+      - ./data:/app/data
       - ./back/media:/app/media
       - ./back/logs:/app/logs
     environment:
       - UV_PROJECT_ENVIRONMENT=/app/.venv
       - APP_VERSION=${APP_VERSION}
+      - DJANGO_DB_NAME=/app/data/db.sqlite3
+    healthcheck:
+      # Só TCP: um GET passaria pelo ALLOWED_HOSTS e poderia ficar
+      # unhealthy para sempre se localhost não estiver na lista
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8000), timeout=2).close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 20s
 
   front:
     build: 
@@ -27,10 +38,10 @@ services:
       - back
 
   caddy:
-    image: caddy:latest
+    image: caddy:2.10
     depends_on:
       back:
-        condition: service_started
+        condition: service_healthy
       front:
         condition: service_started
     ports:

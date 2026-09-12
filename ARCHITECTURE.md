@@ -6,7 +6,7 @@ Sistema de registro de presença por QR Code, com painel ao vivo (fotos flutuant
 
 - **Front-end**: SvelteKit (Svelte 5, runes) + Tailwind CSS 4, build estático (`adapter-static`, fallback SPA, `ssr = false`). Em `front/`.
 - **Back-end**: Django 6 + Django Ninja (API REST) + Django Channels/Daphne (WebSocket). Em `back/`. Gerenciado com `uv` (`back/pyproject.toml`, `back/uv.lock`), Python ≥ 3.12.
-- **Banco**: SQLite (`db.sqlite3` na raiz do repositório, montado no container).
+- **Banco**: SQLite (`data/db.sqlite3` na raiz do repositório quando via Docker; `back/db.sqlite3` fora dele).
 - **Proxy**: Caddy roteia `/api/*`, `/ws*`, `/media/*` para o back e serve o build estático do front. Config em `docker/Caddyfile`.
 - **Deploy**: Docker Compose (`docker-compose-dev.yml`, `docker-compose-prod.yml`, `docker-compose-test.yml`).
 - **Protótipos**: `prototypes/` guarda HTML/CSS/JS puros de cada tela (ver `prototypes/README.md`). A `CONSTITUTION.md` exige que protótipo e tela nunca divirjam.
@@ -142,11 +142,12 @@ Em desenvolvimento, o Vite (`bun run dev`, porta 3000) faz proxy de `/api`, `/me
 ## Infra e deploy
 
 - **Dev (Docker)**: `docker-compose-dev.yml` builda back (`docker/Dockerfile.back`: imagem `uv:alpine`, `uv sync --frozen --no-dev`; o build arg `INSTALL_DEV=true`, usado só pelo compose de teste, inclui o grupo `dev` com `pytest`/`ipdb`; entrypoint roda `collectstatic`, `migrate` e `daphne`) e front (`docker/Dockerfile.front`: `bun run build` e um container `alpine` que copia o build para o volume `front_build/` e fica em `tail -f`). Caddy expõe `:3000` (front + proxy de `/api`, `/ws`, `/media`; também um proxy `/cdn/*` → unpkg.com, sem uso no front atual) e `:8000` (admin do Django + `/static/`). Portas 80/443 são publicadas mas não têm site block no Caddyfile.
-- **Prod**: `docker-compose-prod.yml` usa as imagens `sistemapresenca-back:latest` e `sistemapresenca-front:latest` com `pull_policy: never`; mesmo Caddy. Não há registry: `sendimage.py [back] [front]` builda com o compose de dev, faz `docker save` e envia por `scp` para `root@presenca:/images/`; no servidor, `loadimage.py [back] [front]` faz `docker load` e recria o serviço.
+- **Prod**: `docker-compose-prod.yml` usa as imagens `sistemapresenca-back:latest` e `sistemapresenca-front:latest` com `pull_policy: never`; mesmo Caddy (`caddy:2.10`, versão fixa). O back tem `healthcheck` só de TCP na porta 8000 (um GET passaria pelo `ALLOWED_HOSTS`) e o Caddy espera `service_healthy`. Não há registry: `sendimage.py [back] [front]` builda com o compose de dev, faz `docker save` e envia por `scp` para `root@presenca:/images/`; no servidor, `loadimage.py [back] [front]` faz `docker load` e recria só aquele serviço com `docker compose -f docker-compose-prod.yml up -d --no-deps --force-recreate`. O servidor nunca constrói imagem.
 - **Testes**: `docker-compose-test.yml` roda `pytest -q ../tests` dentro do container do back, com banco em `/tmp`. Localmente: `cd back && uv run python -m pytest ../tests`. Config em `pytest.ini` (raiz) + `conftest.py` (adiciona `back/` ao `sys.path`). Fixtures em `tests/conftest.py` (`user`, `member`, `event` com regra única de 50 pts, `code`, `expired_code`, `device`, `active_device`). Cobertura atual: API de check-in (inclusive `history` e `already`), `per-event`, consumer WebSocket (`joinEvent`, erros), device (controller, API e admin), código/rotação/timer, `Config`, `member/me` e upload de foto, pontuação e `didnt_checkin_today`. Não há testes das rotas de auth, dos management commands nem do front.
 - **Versionamento**: `commitizen` (`cz.json`, semver, tag = versão, `CHANGELOG.md` gerado no bump). `.env` na raiz só carrega `APP_VERSION` para o compose. A versão do front vem de `cz.json` em build time.
 - O front é buildado para `front_build/` e servido como arquivos estáticos pelo Caddy — não há servidor Node em produção.
-- O `db.sqlite3` da raiz é montado como arquivo nos containers; se não existir, o Docker cria um diretório com esse nome e o Django falha ao abrir o banco.
+- **Banco no Docker**: o compose monta o diretório `./data` em `/app/data` e define `DJANGO_DB_NAME=/app/data/db.sqlite3`. O `back_entrypoint.sh` recusa subir se esse arquivo não existir (evita o `migrate` criar um banco vazio por engano); para criar um banco novo de propósito, `ALLOW_NEW_DB=1`. Fora do Docker o default continua `back/db.sqlite3`.
+- Ideias adiadas (deploy automatizado, registry) ficam em `FUTURE.md`.
 
 ## Pontos de atenção
 
