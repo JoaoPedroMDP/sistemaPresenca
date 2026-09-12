@@ -194,11 +194,11 @@
             </span>
         </div>
 
-        <div class="grid gap-4 px-6 pt-4 pb-4 flex-1 min-h-0 overflow-y-auto content-start member-grid">
+        <div class="grid gap-4 px-6 pt-6 pb-4 flex-1 min-h-0 overflow-y-auto content-start member-grid">
             {#each filtered as m (m.id)}
                 <button
-                    class="flex items-center justify-center overflow-hidden pt-7 px-5 pb-4 border-2 border-gray-200
-                           rounded-2xl bg-white cursor-pointer hover:border-indigo-500"
+                    class="flex items-center justify-center min-w-0 pt-7 px-2 pb-4 border-2 border-gray-200
+                           rounded-2xl bg-white cursor-pointer hover:border-indigo-500 member-card"
                     onclick={() => pick(m)}
                 >
                     <Member
@@ -224,8 +224,28 @@
 {/if}
 
 <style>
+    /* Colunas largas o bastante para caber a foto de 84px mais o nome:
+       sem isso o tablet enfia seis cartões por linha e corta os dois */
     .member-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-auto-rows: min-content;
+    }
+
+    .member-card {
+        min-height: 150px;
+    }
+
+    /* Faixa de tablet: menos colunas, cartões maiores */
+    @media (min-width: 640px) {
+        .member-grid {
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        }
+    }
+
+    @media (min-width: 1280px) {
+        .member-grid {
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        }
     }
 
     .spinner {

@@ -72,15 +72,21 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
+        /* Dentro de grid/flex apertado o item precisa poder encolher o nome
+           sem espremer a foto */
+        min-width: 0;
+        max-width: 100%;
     }
 
     .member-photo-wrap {
         position: relative;
         line-height: 0;
+        flex: 0 0 auto;
     }
 
     .member-photo {
+        display: block;
         width: var(--member-photo-size);
         height: var(--member-photo-size);
         border-radius: 9999px;
@@ -94,10 +100,16 @@
         font-weight: 600;
         color: var(--color-indigo-950);
         text-align: center;
-        line-height: 1.2;
-        max-width: calc(var(--member-photo-size) * 2);
+        line-height: 1.25;
+        /* Nunca passa da largura do card; nome comprido quebra em até duas
+           linhas e só então recebe reticências */
+        max-width: 100%;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
         overflow: hidden;
-        text-overflow: ellipsis;
+        overflow-wrap: anywhere;
     }
 
     .member-hat {
