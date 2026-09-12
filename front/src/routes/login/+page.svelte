@@ -32,7 +32,7 @@
     }
 </script>
 
-<div class="h-dvh flex flex-col items-center justify-center gap-4">
+<div class="h-full flex flex-col items-center justify-center gap-4">
     <span class="text-2xl text-indigo-900">{message}</span>
     <img src={logo} alt="Logo">
     <Text label="Usuário" bind:value={username}/>

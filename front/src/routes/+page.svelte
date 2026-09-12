@@ -81,7 +81,7 @@
 	checkinStore.registerObserver(memberCheckin);
 </script>
 
-<div class="flex flex-row items-center justify-center h-dvh gap-8 text-black">
+<div class="flex flex-row items-center justify-center h-full gap-8 text-black">
 	{#if !connected}
 		<div class="flex flex-col items-center gap-4">
 			<p class="text-2xl text-center text-indigo-900">Digite o nome do evento para gerar o QR Code</p>

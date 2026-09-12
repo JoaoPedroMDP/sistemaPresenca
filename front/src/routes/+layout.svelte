@@ -33,13 +33,18 @@
 	<title>Jovens AV</title>
 </svelte:head>
 
-<div>
-	{@render props.children?.()}
-	{#if import.meta.env.MODE == 'development'}
-		<div class="absolute top-12 right-0 flex flex-col gap-4">
-			<button onclick={clearAllStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage (+auth)</button>
-			<button onclick={clearStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage</button>
-		</div>
-	{/if}
-	<span class="absolute bottom-0 right-1 text-indigo-950 bg-white">v{version}</span>
+<div class="h-dvh flex flex-col">
+	<div class="relative flex-1 min-h-0 overflow-y-auto">
+		{@render props.children?.()}
+		{#if import.meta.env.MODE == 'development'}
+			<div class="absolute top-12 right-0 flex flex-col gap-4">
+				<button onclick={clearAllStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage (+auth)</button>
+				<button onclick={clearStorage} class="px-4 py-2 bg-indigo-900 text-white rounded-lg mt-4">Recarregar Storage</button>
+			</div>
+		{/if}
+	</div>
+	<footer class="shrink-0 flex justify-between px-2 py-0.5 text-xs text-indigo-950">
+		<span>Desenvolvido com &lt;3 por João Pedro</span>
+		<span>v{version}</span>
+	</footer>
 </div>

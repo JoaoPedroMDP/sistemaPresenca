@@ -27,7 +27,7 @@
     }
 </script>
 
-<div>
+<div class="min-h-full flex flex-col">
     {#if checkedAuth}
         <nav class="flex items-center justify-between p-4 bg-indigo-900 text-white">
             <span class="text-xl font-bold">Jovens AV</span>
@@ -39,7 +39,7 @@
         {@render props.children?.()}
 
     {:else}
-        <div class="h-dvh flex items-center justify-center">
+        <div class="flex-1 flex items-center justify-center">
             <span class="text-2xl text-indigo-900">Verificando autenticação...</span>
         </div>
     {/if}

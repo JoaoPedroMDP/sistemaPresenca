@@ -55,7 +55,7 @@
     }
 </script>
 
-<div id="main" data-success={success} class="relative p-4 h-dvh flex flex-col justify-center items-center overflow-hidden">
+<div id="main" data-success={success} class="relative p-4 h-full flex flex-col justify-center items-center overflow-hidden">
     <div id="content" class="flex flex-col items-center" data-success={success}>
         <label id="select" class="label flex flex-col text-indigo-900 z-10" data-success={success}>
             <span class="label-text">Quem é?</span>

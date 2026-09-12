@@ -121,7 +121,7 @@
 </script>
 
 {#if activating || activationError || accessError}
-    <div class="flex flex-col items-center justify-center gap-5 h-dvh p-6 text-center bg-white">
+    <div class="flex flex-col items-center justify-center gap-5 h-full p-6 text-center bg-white">
         {#if activationError}
             <p class="text-xl font-semibold text-red-600">Não foi possível ativar este dispositivo</p>
             <p class="text-indigo-900">{activationError}</p>
@@ -141,7 +141,7 @@
     </div>
 {:else if selected}
     <div id="main" data-success={success}
-        class="relative flex flex-col items-center justify-center gap-5 h-dvh p-6 overflow-hidden bg-white">
+        class="relative flex flex-col items-center justify-center gap-5 h-full p-6 overflow-hidden bg-white">
         <div id="content" data-success={success} class="z-10 flex flex-col items-center gap-5">
             <Member
                 name={selected.name}
@@ -172,7 +172,7 @@
         </div>
     </div>
 {:else}
-    <div class="flex flex-col h-dvh bg-white">
+    <div class="flex flex-col h-full bg-white">
         <header class="flex items-center gap-4 px-6 py-4 bg-indigo-900 text-white">
             <div class="flex flex-col gap-0.5">
                 <strong class="text-xl font-semibold">{eventName}</strong>
@@ -194,7 +194,7 @@
             </span>
         </div>
 
-        <div class="grid gap-4 px-6 pt-4 pb-24 flex-1 min-h-0 overflow-y-auto content-start member-grid">
+        <div class="grid gap-4 px-6 pt-4 pb-4 flex-1 min-h-0 overflow-y-auto content-start member-grid">
             {#each filtered as m (m.id)}
                 <button
                     class="flex items-center justify-center overflow-hidden pt-7 px-5 pb-4 border-2 border-gray-200
@@ -215,7 +215,7 @@
             <p class="py-16 text-center text-gray-500">Nenhum nome encontrado.</p>
         {/if}
 
-        <footer class="fixed bottom-0 left-0 right-0 flex items-center justify-between px-6 py-3
+        <footer class="shrink-0 flex items-center justify-between px-6 py-3
                        bg-white border-t border-gray-200 text-sm text-gray-500">
             <span>Toque no seu nome para registrar presença</span>
             <span class="px-3 py-1 rounded-full bg-emerald-500 text-white">{doneToday} presentes hoje</span>
