@@ -9,15 +9,9 @@
         callActivateDevice,
         callDeviceCheckin,
         callDevicePendingMembers,
+        type DevicePendingMember as PendingMember,
     } from "$lib/api/deviceApi.svelte";
     import type { PageProps } from "./$types";
-
-    interface PendingMember {
-        id: number;
-        name: string;
-        photo: string | null;
-        birthday: string | null;
-    }
 
     const PHOTO_SIZE = 84;
     const BACK_TO_LIST_SECONDS = 3;
@@ -26,6 +20,8 @@
 
     let activating = $state(true);
     let activationError: string | null = $state(null);
+    // Aparelho já ativado que perdeu o acesso (revogado ou expirado no admin)
+    let accessError: string | null = $state(null);
     let eventName = $state("");
 
     let members: PendingMember[] = $state([]);
@@ -56,28 +52,26 @@
         }
 
         const response = await callActivateDevice(params.code);
-        if (!response.success) {
+        if (!response.success || !response.data) {
             activationError = response.message;
             activating = false;
             return;
         }
 
-        const data = response.data as { event: string; expiresAt: string };
-        eventName = data.event;
-        LSSaveDevice({ code: params.code, event: data.event }, data.expiresAt);
+        eventName = response.data.event;
+        LSSaveDevice({ code: params.code, event: response.data.event }, response.data.expiresAt);
         activating = false;
     }
 
     async function loadPending() {
         const response = await callDevicePendingMembers(params.code);
-        if (!response.success) {
-            activationError = response.message;
+        if (!response.success || !response.data) {
+            accessError = response.message;
             return;
         }
 
-        const data = response.data as { event: string; members: PendingMember[] };
-        eventName = data.event;
-        members = data.members;
+        eventName = response.data.event;
+        members = response.data.members;
     }
 
     function pick(member: PendingMember) {
@@ -102,8 +96,7 @@
             return;
         }
 
-        const data = response.data as { points: number };
-        pointsEarned = data.points;
+        pointsEarned = response.data?.points ?? null;
         success = true;
         doneToday += 1;
         members = members.filter(m => m.id !== selected?.id);
@@ -127,12 +120,16 @@
     });
 </script>
 
-{#if activating || activationError}
+{#if activating || activationError || accessError}
     <div class="flex flex-col items-center justify-center gap-5 h-dvh p-6 text-center bg-white">
         {#if activationError}
             <p class="text-xl font-semibold text-red-600">Não foi possível ativar este dispositivo</p>
             <p class="text-indigo-900">{activationError}</p>
             <p class="text-gray-500 max-w-lg">Peça um novo código no admin e escaneie o QR Code de novo.</p>
+        {:else if accessError}
+            <p class="text-xl font-semibold text-red-600">Este dispositivo perdeu o acesso</p>
+            <p class="text-indigo-900">{accessError}</p>
+            <p class="text-gray-500 max-w-lg">O acesso foi revogado ou expirou. Peça um novo código no admin e escaneie o QR Code de novo.</p>
         {:else}
             <div class="spinner"></div>
             <h1 class="text-2xl text-indigo-900">Ativando este dispositivo…</h1>

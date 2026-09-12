@@ -6,7 +6,7 @@
 	import "$lib/websocket/socket";
     import Text from '$lib/inputs/Text.svelte';
     import Phloating from '$lib/components/Phloating.svelte';
-    import type { PhloatingHandlers } from '$lib/components/Phloating.svelte';
+    import type { ScoreEntry } from '$lib/types/api';
 	import checkinStore, { type MemberCheckin } from '$lib/stores/checkinStore.svelte';
     import { callAlreadyCheckedIn } from '$lib/api/checkinApi.svelte';
     import Button from '$lib/inputs/Button.svelte';
@@ -15,8 +15,8 @@
 
 	let connected: boolean = $state(false);
 	let event_name: string = $state('Escola Sabatina');
-	let scoreboard = $state([]);
-	let phloating: PhloatingHandlers | null = $state(null); 
+	let scoreboard = $state<ScoreEntry[]>([]);
+	let phloating: ReturnType<typeof Phloating> | null = $state(null);
 
 	async function loadPreviousCheckins(group_name: string){
 		let response = await callAlreadyCheckedIn(group_name);
@@ -26,13 +26,13 @@
 			});
 		}
 		else{
-			console.error("Failed to fetch already checked-in members:", response.error);
+			console.error("Failed to fetch already checked-in members:", response.message);
 		}
 	}
 
 	async function loadScoreboard(scoreboard_name: string){
 		let response = await callGetEventScoreboard(scoreboard_name);
-		if(response.success){
+		if(response.success && response.data){
 			scoreboard = response.data.data;
 		}
 	}
@@ -79,7 +79,6 @@
 	}
 
 	checkinStore.registerObserver(memberCheckin);
-	$inspect(scoreboard);
 </script>
 
 <div class="flex flex-row items-center justify-center h-dvh gap-8 text-black">

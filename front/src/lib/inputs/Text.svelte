@@ -1,12 +1,21 @@
 <script lang="ts">
-    let { 
-        value = $bindable(), 
-        onkeyup = null,
+    interface Props {
+        value?: string | null;
+        onkeyup?: (e: KeyboardEvent) => void;
+        label?: string | null;
+        cls?: string;
+        labelCls?: string;
+        type?: string;
+    }
+
+    let {
+        value = $bindable(),
+        onkeyup = undefined,
         label = null,
         cls = '',
         labelCls = '',
         type = 'text',
-         } = $props();
+    }: Props = $props();
 </script>
 
 <label>

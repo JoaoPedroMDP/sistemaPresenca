@@ -27,6 +27,18 @@
     function randomBetween(a: number, b: number): number {
         return a + Math.random() * (b - a);
     }
+
+    // Sorteado uma vez por tamanho, não a cada render: senão o confete
+    // "pula" de lugar sempre que o componente atualiza
+    const confetti = $derived(
+        Array.from({ length: CONFETTI_COUNT }, (_, i) => ({
+            delay: i * 0.15,
+            initialX: randomBetween(size / 4, size - size / 4),
+            targetX: randomBetween(0, size),
+            rotation: randomBetween(0, 360),
+            color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        }))
+    );
 </script>
 
 <div class="member" style="--member-photo-size: {size}px">
@@ -34,15 +46,15 @@
         {#if birthday}
             <img src={PartyHat} class="member-hat" alt="Chapéu de aniversário" />
             <div class="confetti-container">
-                {#each Array(CONFETTI_COUNT) as _, i}
+                {#each confetti as piece}
                     <div
                         class="confetti"
                         style="
-                            --delay: {i * 0.15}s;
-                            --initial-x: {randomBetween(size / 4, size - size / 4)}px;
-                            --target-x: {randomBetween(0, size)}px;
-                            --rotation: {randomBetween(0, 360)}deg;
-                            background-color: {CONFETTI_COLORS[i % CONFETTI_COLORS.length]};
+                            --delay: {piece.delay}s;
+                            --initial-x: {piece.initialX}px;
+                            --target-x: {piece.targetX}px;
+                            --rotation: {piece.rotation}deg;
+                            background-color: {piece.color};
                         "
                     ></div>
                 {/each}

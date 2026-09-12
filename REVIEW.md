@@ -2,7 +2,8 @@
 
 Análise feita sobre a branch `device` (commit `b8959b8`). Suíte de testes do back
 executada localmente: 54 testes passando. `svelte-check` do front: 18 erros e
-2 avisos, todos anteriores a esta revisão (lista em B5).
+2 avisos, todos anteriores a esta revisão (lista em B5). Estado após as
+correções: 91 testes passando e 1 `xfail` (A1); `svelte-check` sem erros.
 
 Prioridade: **Alta** = bug que afeta o uso real ou segurança; **Média** = defeito
 com contorno ou dívida que vai custar em breve; **Baixa** = limpeza.
@@ -119,7 +120,11 @@ Um `Code` por minuto por evento, enquanto houver painel aberto; nada apaga. Em u
 
 ## Baixa
 
-### B1. Código morto e dependências sem uso
+### B1. Código morto e dependências sem uso (corrigido, exceto `Scoreboard`/`Score`)
+
+Removidos `model_schemas.py`, `scoreboard_controller.py`, `CHECKIN_BOARD`, `codeStore.useCode`, `authStore.isLogged`, `Consumer.send_json`, a rota `/teste`, a prop `debug` do `Phloating`, as dependências npm e o handle `/cdn/*` (introduzido em `3afef69` para o `@bitjson/qr-code` via unpkg e sem uso desde `c944d67`, quando o QR passou a `@svelte-put/qr`). Fontes agora via `@fontsource` e `lang="pt-BR"`. Ficam os models `Scoreboard`/`Score` e o `populate_db` que cria um `Scoreboard`: removê-los exige migração, o que depende de aprovação (`CONSTITUTION.md`).
+
+Lista original:
 
 - `presenca/model_schemas.py` (nenhum import; `CodeSchema.used` referencia campo removido na 0012).
 - `Scoreboard`, `Score`, `ScoreboardController`, `CHECKIN_BOARD`: sem chamador fora de `populate_db`. Ou passam a ser a fonte do placar (com atualização no check-in) ou saem.
@@ -129,24 +134,26 @@ Um `Code` por minuto por evento, enquanto houver painel aberto; nada apaga. Em u
 - `app.html`: carrega Google Font "Funnel Sans" não usada; `.font-courier` referencia "Courier Prime", que nunca é carregada; `lang="en"` em app em português.
 - Rota `/teste` vai para o build de produção (e passa `birthday: '2026-05-15'` onde o tipo pede `boolean`).
 
-### B2. Documentação defasada (corrigido em `ARCHITECTURE.md` nesta revisão)
+### B2. Documentação defasada (corrigido)
 
 O `ARCHITECTURE.md` ainda citava `SABBATH_CLASS_EVENT`/`checkin_sabbath` e o `.get()` que lançava `DoesNotExist`, ambos removidos nos commits `b92f969` e `24f9205`. `prototypes/README.md` ainda descreve o `Device` como "Code com modo de dispositivo" em "Admin" e menciona a rota `/checkin/device/[code]/confirmar`, que não existe no app (a confirmação é estado da mesma rota).
 
-### B3. Logging
+### B3. Logging (corrigido: `INICIO`/`FIM` em `debug`, logger `presenca` em INFO fora do `DEBUG`)
 
 Todas as rotas logam `INICIO`/`FIM` em `INFO` com f-strings avaliadas mesmo com nível desligado. Baixar para `DEBUG` ou substituir por um middleware de request log. Logger `presenca` em `DEBUG` também em produção (`settings.py`).
 
-### B4. Admin
+### B4. Admin (corrigido: `has_photo`, filtros e hierarquia de data em `CodeAdmin`, `EventAdmin`/`ScoreboardAdmin`, `TimeScoreRules.clean`)
 
 - `MemberAdmin.ordering = ("name","birthday")` ok, mas `list_display` não mostra se tem foto.
 - `CodeAdmin` lista uma tabela que só cresce (ver M4) sem filtro por evento nem data.
 - `Event` e `Scoreboard` registrados sem `ModelAdmin` (sem busca/filtros).
 - `TimeScoreRules` sem validação de `start_time <= end_time` nem de sobreposição entre faixas do mesmo evento.
 
-### B5. Front — tipagem e pequenos defeitos
+### B5. Front — tipagem e pequenos defeitos (corrigido, exceto os dois últimos itens)
 
-`bun run check` (svelte-check) hoje falha com 18 erros. Agrupados:
+`svelte-check` agora roda sem erros nem avisos: `ApiResponse<T>` genérico com `status?`, `__APP_VERSION__` declarado em `app.d.ts`, `@types/node`, `ReturnType<typeof Phloating>` no lugar do `.d.ts`, `PendingMember`/`ScoreEntry` em `types/api.ts`, props tipadas em `Button`/`Text` (prop `icon` removida: ninguém usava e o Tailwind não geraria a classe dinâmica), confete do `Member` sorteado uma vez por tamanho, página do dispositivo com `accessError` separado de `activationError` (protótipo 06 ganhou `?erro=revogado`). Ficam em aberto: `doneToday` só existe na sessão da página (o back não expõe a contagem do dia por dispositivo) e o TTL de 5 min de `authStorage`/`memberStorage`, que duplica a sessão do Django — decisão de produto.
+
+Lista original (18 erros):
 - `ApiResponse.data` é `object`: todo consumidor acessa `.members`, `.data`, indexa por string (`+page.svelte`, `checkin/[code]/+page.svelte`, `(auth)/me/+page.svelte`). Tipar `ApiResponse<T>` com generic.
 - `bind:this={phloating}` tipado como `PhloatingHandlers` não bate com o tipo do componente Svelte 5 (`+page.svelte`, `teste/+page.svelte`). Usar `ReturnType<typeof Phloating>` ou exportar o tipo do próprio componente.
 - `scoreboard = $state([])` infere `never[]` (`entry.name`, `entry.score`).
@@ -162,13 +169,13 @@ Todas as rotas logam `INICIO`/`FIM` em `INFO` com f-strings avaliadas mesmo com 
 - `routes/checkin/device/[code]`: `activationError` é reaproveitado para erros de `loadPending`, mostrando "Não foi possível ativar este dispositivo" para um 401 de revogação; `doneToday` começa em 0 a cada recarga em vez de vir do servidor.
 - `authStorage`/`memberStorage` com TTL de 5 min duplicam o que a sessão do Django já controla.
 
-### B6. Testes ausentes
+### B6. Testes ausentes (corrigido, exceto front)
 
-Sem cobertura para: rotas de auth, `import_checkins`/`export_checkins`, ação `revoke` do admin, concorrência da ativação de `Device`, e o caso do A1. Nenhum teste de front. `pytest.ini` sem `--reuse-db`/`-p no:cacheprovider`, e o `.gitignore` da raiz não ignora `.pytest_cache`.
+Adicionados `test_auth_api.py`, `test_checkin_commands.py` (export, import, idempotência e ida e volta), `test_admin_device_revoke.py`, `test_device_concurrency.py` (4 threads, um só `activate` passa) e `test_pending_members.py`, onde o caso do A1 está como `xfail(strict=True)`: quando A1 for corrigido o teste passa a falhar por passar, lembrando de tirar a marca. `.pytest_cache/` entrou no `.gitignore` da raiz. Segue sem teste de front.
 
-### B7. Migração importa management command
+### B7. Migração importa management command (corrigido)
 
-`0006_member_photo_alter_score_unique_together.py` importa `fix_passwords` de `presenca.management.commands.set_default_passwords`. Renomear ou apagar o command quebra a migração. Copiar a lógica para dentro da migração (ou remover, já que a 0006 já rodou em produção e um `RunPython.noop` de ida basta em bancos novos — decisão que exige aprovação, conforme `CONSTITUTION.md`).
+`0006_member_photo_alter_score_unique_together.py` importava `fix_passwords` de `presenca.management.commands.set_default_passwords`. Com aprovação, o `RunPython` inteiro saiu da migração, que ficou só com `AddField` e `AlterUniqueTogether`. Seguro para produção: a 0006 já consta em `django_migrations`, o `migrate` apenas importa o módulo e não reexecuta operações aplicadas; nenhuma operação de schema mudou (`makemigrations --check` sem alterações). Em banco novo o `RunPython` não fazia nada, pois não há usuários na hora da 0006.
 
 ## Ordem sugerida
 

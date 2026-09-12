@@ -1,6 +1,6 @@
 <script lang="ts">
     import Button from "$lib/inputs/Button.svelte";
-    import type { Member } from "$lib/types/api";
+    import type { PendingMember } from "$lib/types/api";
     import { onMount } from "svelte";
     import type { PageProps } from "./$types";
     import { callPendingMembers } from "$lib/api/checkinApi.svelte";
@@ -10,7 +10,7 @@
     let success: boolean|null = $state(null);
     let pointsEarned = $state<number|null>(10);
 
-    let members: Member[] = $state([]);
+    let members: PendingMember[] = $state([]);
     let member: number | null = $state(null)
 
     onMount(async ()=>{

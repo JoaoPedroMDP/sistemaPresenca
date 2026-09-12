@@ -1,11 +1,17 @@
 <script lang="ts">
-    let { 
+    interface Props {
+        onclick?: (e: MouseEvent) => void;
+        disabled?: boolean;
+        text?: string;
+        cls?: string;
+    }
+
+    let {
         onclick,
         disabled = false,
-        text = undefined, 
-        icon = undefined,
-        cls = undefined
-    } = $props();
+        text = undefined,
+        cls = ''
+    }: Props = $props();
 </script>
 
 <button class="
@@ -15,8 +21,5 @@
     {cls}" {onclick} disabled={disabled}>
     {#if text}
         <span>{text}</span>
-    {/if}
-    {#if icon}
-        <span class="icon-[{icon}]"></span>
     {/if}
 </button>

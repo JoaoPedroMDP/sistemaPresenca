@@ -84,6 +84,12 @@
     <p id="err-msg">Este código já foi usado em outro aparelho.</p>
     <p>Peça um novo código no admin e escaneie o QR Code de novo.</p>
   </div>
+  <!-- Aparelho já ativado que foi revogado ou expirou no admin (?erro=revogado) -->
+  <div id="access-error" class="col items-center gap-4 hidden">
+    <p class="err">Este dispositivo perdeu o acesso</p>
+    <p>Dispositivo revogado.</p>
+    <p>O acesso foi revogado ou expirou. Peça um novo código no admin e escaneie o QR Code de novo.</p>
+  </div>
 </div>
 
 <script src="assets/app.js"></script>
@@ -96,7 +102,12 @@
   // código ainda precisa ser resgatado. App real: POST .../activate, uma vez
   // só, e o código fica guardado. Nas visitas seguintes nada disso aparece.
   const overlay = document.getElementById('overlay');
-  if (params.get('erro')) {
+  if (params.get('erro') === 'revogado') {
+    // App real: GET .../pending devolveu 401 num aparelho já ativado
+    overlay.classList.remove('hidden');
+    document.getElementById('activating').classList.add('hidden');
+    document.getElementById('access-error').classList.remove('hidden');
+  } else if (params.get('erro')) {
     overlay.classList.remove('hidden');
     document.getElementById('activating').classList.add('hidden');
     document.getElementById('activation-error').classList.remove('hidden');

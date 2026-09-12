@@ -39,3 +39,16 @@ class Member{
 
 export type { MemberI, User };
 export { Member };
+// Linha do placar (presenca/api/score.py, get_scoreboard_for_event)
+interface ScoreEntry {
+    name: string;
+    score: number;
+}
+
+// Item de /api/checkin/pending/<code>: só id e nome, sem foto
+interface PendingMember {
+    id: number;
+    name: string;
+}
+
+export type { ScoreEntry, PendingMember };

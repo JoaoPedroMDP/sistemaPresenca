@@ -12,7 +12,8 @@
 
     let fileInput: HTMLInputElement;
     let cropModalActive = $state(false);
-    let canvas: HTMLCanvasElement;
+    // $state porque o canvas só existe enquanto o modal está aberto (bind:this dentro do {#if})
+    let canvas = $state<HTMLCanvasElement | null>(null);
     let cropCanvas: HTMLCanvasElement;
     let img = new Image();
 
@@ -124,6 +125,7 @@
     // ── Coordenadas canvas ────────────────────────────────────────────────────
 
     function toImgCoords(clientX: number, clientY: number) {
+        if (!canvas) return { x: 0, y: 0 };
         const rect = canvas.getBoundingClientRect();
         return {
             x: (clientX - rect.left)  * (img.naturalWidth  / rect.width),
@@ -301,7 +303,6 @@
             ontouchmove={onTouchMove}
             ontouchend={onTouchEnd}
             onwheel={onWheel}
-            role="img"
             aria-label="Editor de recorte de foto"
         ></canvas>
 

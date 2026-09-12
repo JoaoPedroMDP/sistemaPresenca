@@ -8,6 +8,9 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	// Injetada pelo vite.config.ts (define) a partir da versão do cz.json
+	const __APP_VERSION__: string;
 }
 
 export {};

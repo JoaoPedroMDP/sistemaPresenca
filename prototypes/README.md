@@ -23,7 +23,8 @@ senha — o aparelho é liberado escaneando o QR Code gerado no admin.
 A ativação não é uma tela à parte: é o estado inicial da lista, visível só na
 primeira visita. `06-dispositivo-lista.html?code=abc` mostra o "Ativando este
 dispositivo…" antes da grade; `?erro=usado` (ou `?erro=invalido`) mostra a
-falha. Sem parâmetro, a lista abre direto — é o que o aparelho já ativado vê.
+falha de ativação e `?erro=revogado` a tela de aparelho já ativado que perdeu
+o acesso (401 em `.../pending`). Sem parâmetro, a lista abre direto — é o que o aparelho já ativado vê.
 Nenhuma tela do protótipo exige credencial para ser aberta.
 
 ## Arquivos compartilhados
