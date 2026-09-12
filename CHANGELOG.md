@@ -1,3 +1,33 @@
+## 1.1.0 (2026-09-12)
+
+### Feat
+
+- Adiciona suporte a login por dispositivo pré-autenticado
+
+### Fix
+
+- Pequeno bug visual na página de perfil
+- Correção do rodapé de versão
+- Limpa tipagem do front, cobre testes ausentes e desacopla migração 0006
+- Problemas menores na dockerização
+- Corrige contratos, concorrência, retenção e ambiente do back e do front
+- WebSocket usa wss quando a página está em HTTPS
+fix: login e placar devolvem status HTTP real no erro
+fix: check-in simultâneo do mesmo membro gera um único registro
+fix: códigos de QR com mais de um ano são apagados
+fix: memberStore para no erro e User expõe email
+fix: semana do aniversário cruza mês e ano sem off-by-one
+fix: layout autenticado espera o back e redireciona sem sessão
+fix: log e mídia em caminhos absolutos montados pelo compose
+fix: dependências de teste saem da imagem de produção
+- Alguns erros triviais resultavam em 500
+- Problemas com nomes de eventos inválidos e normalização
+- Websocket nao reconectava em fechamentos inesperados
+
+### Refactor
+
+- Remoção de código morto, logs
+
 ## 1.0.2 (2026-07-18)
 
 ### Fix
