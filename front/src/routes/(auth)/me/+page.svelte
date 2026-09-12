@@ -78,21 +78,23 @@
         {#if Object.keys(checkinHistory).length > 0}
             <div class="flex flex-col items-center p-4 ring-1 ring-indigo-900 rounded-xl w-full gap-2 mt-4">
                 <span class="text-black self-start text-xl">Histórico de Presença:</span>
-                <div class="flex flex-col items-start text-white">
+                <div class="flex flex-col items-start w-full text-white gap-4">
                 {#each Object.keys(checkinHistory) as e_name}
-                    <div class="flex relative flex-col text-lg bg-emerald-500 self-center rounded-t-2xl p-2 w-full text-black text-center">
-                        <h2>{e_name}</h2>
-                        <span class="absolute right-0 -top-2 bg-indigo-900 px-1.5 rounded-l-2xl rounded-tr-2xl text-white text-sm">{scorePerEvent[e_name]} pts</span>
-                    </div>
-                    <div class="flex flex-col px-3 p-2 rounded-b-2xl bg-indigo-900 w-full text-center">
-                    {#each checkinHistory[e_name] as c_date}
-                        <span class="font-courier">{
-                            new Date(c_date).toLocaleString(
-                                "pt-BR",
-                                { dateStyle: 'short', timeStyle: 'short' }
-                            )
-                        }</span>
-                    {/each}
+                    <div class="flex flex-col w-full">
+                        <div class="flex relative flex-col text-lg bg-emerald-500 self-center rounded-t-2xl p-2 w-full text-black text-center">
+                            <h2>{e_name}</h2>
+                            <span class="absolute right-0 -top-2 bg-indigo-900 px-1.5 rounded-l-2xl rounded-tr-2xl text-white text-sm">{scorePerEvent[e_name]} pts</span>
+                        </div>
+                        <div class="flex flex-col px-3 p-2 rounded-b-2xl bg-indigo-900 w-full text-center">
+                        {#each checkinHistory[e_name] as c_date}
+                            <span class="font-courier">{
+                                new Date(c_date).toLocaleString(
+                                    "pt-BR",
+                                    { dateStyle: 'short', timeStyle: 'short' }
+                                )
+                            }</span>
+                        {/each}
+                        </div>
                     </div>
                 {/each}
                 </div>
