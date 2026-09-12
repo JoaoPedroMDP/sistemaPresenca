@@ -52,17 +52,34 @@ class Consumer(CustomJsonConsumer):
         type = content.get("type")
         if type == "joinEvent":
             lgr.debug("Mensagem recebida: joinEvent")
-            event = Event.objects.get(name=content.get("event"))
-            success = self.add_group(event)
-            if success:
-                CodeTimerRegistry.add_listener(event)
-                WsController.send_current_code_for_event(event)
-                return
-            
-            lgr.error(f"Falha ao adicionar ao evento {event}. Verifique os logs para mais detalhes.")
-
+            self.join_event(content.get("event"))
         else:
             lgr.warning(f"Tipo de Mensagem desconhecido: {type}")
+            self.send_error(f"Tipo de mensagem desconhecido: {type}")
+
+    def join_event(self, event_name):
+        """
+            Entra no grupo do evento. Nome inexistente ou falha no channel
+            layer respondem um evento "error" em vez de derrubar o socket.
+        """
+        try:
+            event = Event.objects.get(name=event_name)
+        except Event.DoesNotExist:
+            lgr.warning(f"joinEvent para evento inexistente: '{event_name}'")
+            self.send_error(f"Evento '{event_name}' não existe. Confira o nome no admin.")
+            return
+
+        if not self.add_group(event):
+            lgr.error(f"Falha ao adicionar ao evento {event}. Verifique os logs para mais detalhes.")
+            self.group_name = None
+            self.send_error(f"Não foi possível entrar no evento '{event_name}'.")
+            return
+
+        CodeTimerRegistry.add_listener(event)
+        WsController.send_current_code_for_event(event)
+
+    def send_error(self, message: str):
+        self.send_json({"type": "error", "message": message})
 
     def send_json(self, content: Any, close: bool = False) -> None:
         return super().send_json(content, close)

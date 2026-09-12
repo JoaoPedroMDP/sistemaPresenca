@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta
+import re
 import uuid
 
 from django.contrib.auth.models import User
@@ -69,8 +70,14 @@ class Event(Base):
     def __str__(self):
         return self.name
 
+    # Nome de grupo do Channels só aceita [a-zA-Z0-9_.-] e até 100 chars.
+    # Nomes ASCII sem pontuação geram o mesmo grupo de antes ("escola_sabatina").
+    GROUP_NAME_MAX_LENGTH = 100
+    _GROUP_NAME_INVALID = re.compile(r"[^a-z0-9_.-]+")
+
     def as_websocket_group_name(self):
-        return self.name.lower().replace(" ", "_")
+        ascii_name = unidecode.unidecode(self.name).lower()
+        return self._GROUP_NAME_INVALID.sub("_", ascii_name)[:self.GROUP_NAME_MAX_LENGTH]
 
 
 class Code(Base):

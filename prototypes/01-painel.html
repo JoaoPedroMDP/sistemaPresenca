@@ -20,6 +20,8 @@
     <label class="field">
       <input id="event-name" class="input" value="Escola Sabatina">
     </label>
+    <!-- Evento "error" do WebSocket (nome inexistente): volta para este estado com a mensagem -->
+    <span id="join-error" class="error-text text-center hidden"></span>
     <button class="btn" onclick="connect()">Entrar</button>
   </div>
 
@@ -67,6 +69,15 @@
   }
 
   function connect() {
+    const name = document.getElementById('event-name').value.trim();
+    const joinError = document.getElementById('join-error');
+    joinError.classList.add('hidden');
+    // No app o back responde {type: "error"} ao joinEvent de um evento inexistente
+    if (name !== 'Escola Sabatina') {
+      joinError.textContent = `Evento '${name}' não existe. Confira o nome no admin.`;
+      joinError.classList.remove('hidden');
+      return;
+    }
     document.getElementById('disconnected').classList.add('hidden');
     document.getElementById('connected').classList.remove('hidden');
     renderScoreboard();

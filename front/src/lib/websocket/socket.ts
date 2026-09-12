@@ -58,4 +58,10 @@ export function initSocket(event_name: string): Promise<boolean> {
     return createSocket(event_name);
 }
 
+/** Fecha com código 1000 (normal): o onclose não agenda reconexão. */
+export function closeSocket(): void {
+    socket.current?.close(1000);
+    socket.current = null;
+}
+
 export default socket;

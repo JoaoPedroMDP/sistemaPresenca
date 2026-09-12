@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { initSocket } from '$lib/websocket/socket';
+	import { closeSocket, initSocket } from '$lib/websocket/socket';
+	import socketStore from '$lib/stores/socketStore.svelte';
 	import QrCode from "$lib/components/QrCode.svelte";
 	import codeStore from "$lib/stores/codeStore.svelte";
 	import "$lib/websocket/socket";
@@ -37,6 +38,7 @@
 	}
 
 	async function enterGroup(group_name: string) : Promise<void> {
+		socketStore.clearError();
 		connected = await initSocket(group_name);
 		if(connected){
 			await loadPreviousCheckins(group_name);
@@ -44,6 +46,15 @@
 			console.log("Connected to group:", group_name);
 		}
 	}
+
+	// O back recusou o joinEvent (nome errado, por exemplo): fecha o socket
+	// e volta para o input, com a mensagem embaixo dele
+	$effect(() => {
+		if(socketStore.error && connected){
+			closeSocket();
+			connected = false;
+		}
+	});
 
 	async function onkeyup(e: KeyboardEvent): Promise<void> {
 		if(e.key === 'Enter'){
@@ -76,6 +87,9 @@
 		<div class="flex flex-col items-center gap-4">
 			<p class="text-2xl text-center text-indigo-900">Digite o nome do evento para gerar o QR Code</p>
 			<Text bind:value={event_name} {onkeyup}/>
+			{#if socketStore.error}
+				<span class="text-red-500 text-sm text-center">{socketStore.error}</span>
+			{/if}
 			<Button onclick={() => enterGroup(event_name)} text="Entrar"></Button>
 		</div>
 	{:else}

@@ -1,9 +1,8 @@
 # Revisão — Sistema de Presença
 
 Análise feita sobre a branch `device` (commit `b8959b8`). Suíte de testes do back
-executada localmente: 54 testes passando. O `svelte-check` do front não foi
-executado (sem `bun`/`node_modules` na máquina), então os apontamentos de
-tipagem do front vêm de leitura de código.
+executada localmente: 54 testes passando. `svelte-check` do front: 19 erros e
+2 avisos, todos anteriores a esta revisão (lista em B5).
 
 Prioridade: **Alta** = bug que afeta o uso real ou segurança; **Média** = defeito
 com contorno ou dívida que vai custar em breve; **Baixa** = limpeza.
@@ -37,7 +36,7 @@ Correção: decidir o significado de `start`/`end` (temporada? recorte do placar
 
 Novo ouvinte recebe `CodeController.get_current_code`, que reutiliza um código com idade até `rotation_seconds` (60s). A thread do `CodeTimerRegistry`, recém-criada, só rotaciona após um intervalo completo. Um código reaproveitado com 50s de idade é substituído aos 110s, mas deixa de validar aos 80s: por até 30s o QR na tela devolve "Este código expirou". Acontece toda vez que o último painel sai e um novo entra dentro da janela de rotação. Correções possíveis: a thread calcular o primeiro `wait` a partir de `code.rotates_at()`, ou `get_current_code` criar um código novo sempre que uma thread nova nasce.
 
-### A5. Nome de evento inexistente ou inválido derruba o consumer
+### A5. Nome de evento inexistente ou inválido derruba o consumer — **corrigido**
 
 `back/presenca/consumer.py`, `receive_json`: `Event.objects.get(name=...)` sem tratamento de `DoesNotExist`. O front aceita qualquer texto no input; um nome errado fecha o socket com exceção no log e o painel fica em "Aguardando código..." sem feedback. Nomes com acento ou pontuação passam no `get` mas falham no `group_add` (Channels só aceita `[a-zA-Z0-9\-_.]`), e o cliente também não é avisado. Responder uma mensagem de erro no socket e usar `slugify` (com `unidecode`) em `as_websocket_group_name`.
 
@@ -146,6 +145,16 @@ Todas as rotas logam `INICIO`/`FIM` em `INFO` com f-strings avaliadas mesmo com 
 
 ### B5. Front — tipagem e pequenos defeitos
 
+`bun run check` (svelte-check) hoje falha com 19 erros. Agrupados:
+- `ApiResponse.data` é `object`: todo consumidor acessa `.members`, `.data`, indexa por string (`+page.svelte`, `checkin/[code]/+page.svelte`, `(auth)/me/+page.svelte`). Tipar `ApiResponse<T>` com generic.
+- `bind:this={phloating}` tipado como `PhloatingHandlers` não bate com o tipo do componente Svelte 5 (`+page.svelte`, `teste/+page.svelte`). Usar `ReturnType<typeof Phloating>` ou exportar o tipo do próprio componente.
+- `scoreboard = $state([])` infere `never[]` (`entry.name`, `entry.score`).
+- `memberStorage.ts` importa `memberI` (o tipo se chama `MemberI`).
+- `__APP_VERSION__` sem declaração global (`app.d.ts`); `vite.config.ts` sem `@types/node`.
+- `+error.svelte`: `page.error` possivelmente `null`.
+- `PhotoSelector.svelte`: `canvas` não declarado com `$state` (aviso `non_reactive_update`); `role="img"` em `<canvas>`.
+
+
 - `inputs/Button.svelte` e `inputs/Text.svelte` sem tipo nas props; `Button` monta `icon-[{icon}]` dinamicamente, o que o Tailwind 4 não gera.
 - `routes/+page.svelte`: `scoreboard = $state([])` sem tipo, `response.error` não existe em `ApiResponse`, `$inspect(scoreboard)` esquecido.
 - `Phloating.svelte.d.ts` ao lado do `.svelte` para exportar `PhloatingHandlers`; o tipo pode sair de `components/types.ts`.
@@ -155,7 +164,7 @@ Todas as rotas logam `INICIO`/`FIM` em `INFO` com f-strings avaliadas mesmo com 
 
 ### B6. Testes ausentes
 
-Sem cobertura para: consumer WebSocket (`joinEvent` com evento inexistente, saída de grupo), rotas de auth, `history`, `per-event`, `already`, `import_checkins`/`export_checkins`, ação `revoke` do admin, concorrência da ativação de `Device`, e o caso do A1. Nenhum teste de front. `pytest.ini` sem `--reuse-db`/`-p no:cacheprovider`, e o `.gitignore` da raiz não ignora `.pytest_cache`.
+Sem cobertura para: rotas de auth, `history`, `per-event`, `already`, `import_checkins`/`export_checkins`, ação `revoke` do admin, concorrência da ativação de `Device`, e o caso do A1. Nenhum teste de front. `pytest.ini` sem `--reuse-db`/`-p no:cacheprovider`, e o `.gitignore` da raiz não ignora `.pytest_cache`.
 
 ### B7. Migração importa management command
 
