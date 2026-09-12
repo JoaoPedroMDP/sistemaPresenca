@@ -1,13 +1,11 @@
 <script lang="ts">
     import type { Extras, FloatingItem, Photo } from "./types";
-    import PartyHat from '$lib/assets/partyhat.png';
+    import Member from "./Member.svelte";
 
     const PHOTO_SIZE = 80;
     const MIN_SPEED = 2;
     const MAX_SPEED = 5;
     const DECELERATION = 0.997;
-    const CONFETTI_COUNT = 20;
-    const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
 
     let items = $state<FloatingItem[]>([]);
     let containerEl = $state<HTMLDivElement | null>(null);
@@ -53,8 +51,10 @@
             y: randomBetween(PHOTO_SIZE, containerHeight - PHOTO_SIZE * 2),
             vx: randomSpeed() * randomSign(),
             vy: randomSpeed() * randomSign(),
-            width: photo.src ? PHOTO_SIZE : undefined,
-            height: photo.src ? PHOTO_SIZE : undefined,
+            // Medido no primeiro tick: com o nome embaixo da foto o item é
+            // mais largo que PHOTO_SIZE, e a colisão com a borda usa isso
+            width: undefined,
+            height: undefined,
             extras: extras,
         };
     }
@@ -139,31 +139,14 @@
         <div
         use:trackPhoto={item.id}
         style="transform: translate({item.x}px, {item.y}px);" 
-        class="absolute"
+        class="absolute will-change-transform"
         >
-        {#if item.extras.birthday}
-            <img src={PartyHat} class="absolute rotate-30 -right-4 -top-4 w-10 h-10 object-contain pointer-events-none z-1" alt="Birthday Hat" />
-            <div class="confetti-container">
-                {#each Array(CONFETTI_COUNT) as _, i}
-                    <div 
-                        class="confetti" 
-                        style="
-                            --delay: {i * 0.15}s;
-                            --initial-x: {randomBetween(0 + PHOTO_SIZE/4, PHOTO_SIZE - PHOTO_SIZE/4)}px;
-                            --target-x: {randomBetween(0, PHOTO_SIZE)}px;
-                            --rotation: {randomBetween(0, 360)}deg;
-                            background-color: {CONFETTI_COLORS[i % CONFETTI_COLORS.length]};
-                        "
-                    ></div>
-                {/each}
-            </div>
-        {/if}
-        {#if !item.src}
-            <span class="name">{item.name}</span>
-        {:else}
-            <img src={item.src} alt={item.name} class="floating-photo" 
-                style="width: {PHOTO_SIZE}px; height: {PHOTO_SIZE}px;"/>
-        {/if}
+        <Member
+            name={item.name ?? ''}
+            photo={item.src}
+            birthday={item.extras.birthday}
+            size={PHOTO_SIZE}
+        />
         {#if debug }
             <div class="absolute top-0 left-0 flex flex-col">
                 <span class="bg-white text-black">X: {item.x.toFixed(0)}</span>
@@ -182,57 +165,4 @@
         pointer-events: none;
     }
 
-    .floating-photo {
-        position: absolute;
-        top: 0;
-        left: 0;
-        will-change: transform;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        overflow: visible;
-    }
-
-    .name {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--color-indigo-950);
-        background: transparent;
-        padding: 2px 6px;
-        max-width: 180px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .confetti-container {
-        position: absolute;
-        top: 100%;
-        /* left: 50%; */
-        pointer-events: none;
-        width: 100%;
-        height: 100%;
-    }
-
-    .confetti {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        top: 0;
-        left: var(--initial-x);
-        opacity: 0;
-        animation: confetti-fall 2s infinite;
-        animation-delay: var(--delay);
-    }
-
-    @keyframes confetti-fall {
-        0% {
-            transform: translate(-50%, 0px) rotate(0deg);
-            opacity: 1;
-        }
-        100% {
-            transform: translate(calc(-50% + var(--target-x)), 200px) rotate(var(--rotation));
-            opacity: 0;
-        }
-    }
 </style>

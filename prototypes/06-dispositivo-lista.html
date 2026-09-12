@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modo dispositivo — Lista</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .tablet { height: 100dvh; display: flex; flex-direction: column; }
+
+  .tablet-header {
+    display: flex; align-items: center;
+    gap: 1rem; padding: 1rem 1.5rem; background: var(--indigo-900); color: #fff;
+  }
+  .tablet-header .ev { display: flex; flex-direction: column; gap: .15rem; }
+  .tablet-header .ev strong { font-size: 1.25rem; font-weight: 600; }
+  .tablet-header .ev span { font-size: .8rem; opacity: .75; }
+  .search-bar { padding: 1rem 1.5rem .25rem; display: flex; gap: .75rem; align-items: center; }
+  .search-bar input { flex: 1; font-size: 1.125rem; padding: .6rem .9rem; }
+
+  .empty { padding: 4rem 1.5rem; text-align: center; color: var(--gray-500); }
+
+  /* Cobre a tela enquanto o código do QR é resgatado, e no erro fica */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50; background: var(--white);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 1.25rem; padding: 1.5rem; text-align: center;
+  }
+  .overlay .logo { width: 180px; }
+  .overlay p { color: var(--gray-500); font-size: .95rem; max-width: 32rem; }
+  .spinner {
+    width: 2.5rem; height: 2.5rem; border-radius: 50%;
+    border: 4px solid var(--gray-200); border-top-color: var(--indigo-700);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .overlay .err { color: var(--red-600); font-size: 1.25rem; font-weight: 600; }
+
+  .tablet-footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.5rem; background: var(--white);
+    border-top: 1px solid var(--gray-200); font-size: .85rem; color: var(--gray-500);
+  }
+</style>
+</head>
+<body>
+
+<div class="tablet">
+  <header class="tablet-header">
+    <div class="ev">
+      <strong id="event-name">Escola Sabatina</strong>
+      <span id="today">Sábado, 12 de setembro de 2026</span>
+    </div>
+  </header>
+
+  <div class="search-bar">
+    <input id="search" class="input" placeholder="Buscar seu nome…" autocomplete="off">
+    <span class="pill pill-gray" id="counter">0 pendentes</span>
+  </div>
+
+  <div id="grid" class="member-grid"></div>
+  <div id="empty" class="empty hidden">Nenhum nome encontrado.</div>
+
+  <footer class="tablet-footer">
+    <span>Toque no seu nome para registrar presença</span>
+    <span id="done-count" class="pill pill-emerald">0 presentes hoje</span>
+  </footer>
+</div>
+
+<!-- Só aparece na primeira vez, logo após o QR do admin ser escaneado -->
+<div id="overlay" class="overlay hidden">
+  <img class="logo" src="assets/jovensLogoAzul.png" alt="Jovens AV">
+  <div id="activating" class="col items-center gap-4">
+    <div class="spinner"></div>
+    <h1 class="title-md">Ativando este dispositivo…</h1>
+    <p>
+      Depois disso o aparelho pode passar de mão em mão: cada pessoa acha o
+      próprio nome e registra a presença, sem escanear nada.
+    </p>
+  </div>
+  <div id="activation-error" class="col items-center gap-4 hidden">
+    <p class="err">Não foi possível ativar este dispositivo</p>
+    <p id="err-msg">Este código já foi usado em outro aparelho.</p>
+    <p>Peça um novo código no admin e escaneie o QR Code de novo.</p>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+  stampVersion();
+
+  const params = new URLSearchParams(location.search);
+
+  // Primeira visita: a URL veio do QR do admin (/checkin/device/<code>) e o
+  // código ainda precisa ser resgatado. App real: POST .../activate, uma vez
+  // só, e o código fica guardado. Nas visitas seguintes nada disso aparece.
+  const overlay = document.getElementById('overlay');
+  if (params.get('erro')) {
+    overlay.classList.remove('hidden');
+    document.getElementById('activating').classList.add('hidden');
+    document.getElementById('activation-error').classList.remove('hidden');
+    document.getElementById('err-msg').textContent = params.get('erro') === 'usado'
+      ? 'Este código já foi usado em outro aparelho.'
+      : 'Este código não existe ou foi revogado.';
+  } else if (params.get('code')) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => {
+      setDeviceCode(params.get('code'), 'Escola Sabatina');
+      overlay.classList.add('hidden');
+    }, 1200);
+  }
+
+  // App real: GET /api/checkin/device/<code>/pending — o código do dispositivo
+  // vai no path e diz de que evento é a lista. Sem código, a rota devolve 401.
+  document.getElementById('event-name').textContent =
+    localStorage.getItem('device_event') || 'Escola Sabatina';
+
+  // Quem já marcou hoje some da lista (mesma regra de Member.didnt_checkin_today)
+  let doneIds = JSON.parse(sessionStorage.getItem('proto_done') || '[]');
+
+  function pending() {
+    return MEMBERS.filter(m => !doneIds.includes(m.id));
+  }
+
+  function render() {
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const list = pending().filter(m => m.name.toLowerCase().includes(q));
+
+    document.getElementById('grid').innerHTML = list.map(m => `
+      <button class="member-card" onclick="pick(${m.id})">
+        ${memberHTML(m, { size: 84 })}
+      </button>`).join('');
+
+    document.getElementById('empty').classList.toggle('hidden', list.length > 0);
+    document.getElementById('counter').textContent = `${pending().length} pendentes`;
+    document.getElementById('done-count').textContent = `${doneIds.length} presentes hoje`;
+  }
+
+  function pick(id) {
+    // Vai para a confirmação; o check-in só acontece após o "Sou eu"
+    location.href = `07-dispositivo-confirmacao.html?id=${id}`;
+  }
+
+
+  document.getElementById('search').addEventListener('input', render);
+  render();
+</script>
+</body>
+</html>

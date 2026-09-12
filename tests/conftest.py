@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 from presenca.constants import DAY_END, DAY_START
-from presenca.models import Code, Event, Member, TimeScoreRules
+from presenca.models import Code, Device, Event, Member, TimeScoreRules
 
 
 @pytest.fixture(autouse=True)
@@ -75,3 +75,14 @@ def expire_code(c: Code) -> None:
         created_at=timezone.now() - timedelta(seconds=Code.validity_seconds() + 1)
     )
     c.refresh_from_db()
+
+@pytest.fixture
+def device(event: Event) -> Device:
+    """Dispositivo recém-criado no admin, ainda sem nenhum aparelho ativado."""
+    return Device.create_for_event(event, label="Tablet da recepção")
+
+
+@pytest.fixture
+def active_device(device: Device) -> Device:
+    device.activate()
+    return device

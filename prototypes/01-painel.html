@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel — Jovens AV</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .painel { display: flex; flex-direction: row; align-items: center; justify-content: center;
+            height: 100dvh; gap: 2rem; position: relative; }
+  .qr-col { display: flex; flex-direction: column; align-items: center; gap: 1rem; z-index: 10; }
+</style>
+</head>
+<body>
+
+<div class="painel">
+  <!-- ================= ESTADO 1: sem conexão ================= -->
+  <div id="disconnected" class="col items-center gap-4">
+    <p class="title-md text-center">Digite o nome do evento para gerar o QR&nbsp;Code</p>
+    <label class="field">
+      <input id="event-name" class="input" value="Escola Sabatina">
+    </label>
+    <button class="btn" onclick="connect()">Entrar</button>
+  </div>
+
+  <!-- ================= ESTADO 2: conectado ================= -->
+  <div id="connected" class="hidden row items-center justify-center gap-8" style="height:100dvh">
+    <div class="qr-col">
+      <h1 class="title-xl text-center">Registre sua presença!!</h1>
+      <div class="qr-wrap">
+        <svg id="ring" class="ring-svg" viewBox="0 0 100 100" preserveAspectRatio="none"
+             style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true">
+          <path class="countdown-ring" pathLength="100" style="animation-duration:60000ms"></path>
+        </svg>
+        <div id="qr"></div>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <p class="head">Placar</p>
+      <div id="score-rows"></div>
+    </div>
+  </div>
+
+  <!-- Fotos flutuantes cobrem a tela inteira -->
+  <div id="phloating" class="floating-container"></div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+  let phlo = null;
+  let checkedIn = 0;
+
+  stampVersion();
+
+  document.getElementById('ring').querySelector('path')
+    .setAttribute('d', ringPath(1.25, 5.25));
+
+  function renderScoreboard() {
+    document.getElementById('score-rows').innerHTML = SCOREBOARD.slice(0, 4)
+      .map((e, i) => `
+        <div class="score-row ${i === 0 ? 'first' : ''}">
+          <span class="pos">${i + 1}º</span>
+          <span class="name">${e.name}</span>
+          ${e.score > 0 ? `<span class="pts">${e.score}</span>` : ''}
+        </div>`).join('');
+  }
+
+  function connect() {
+    document.getElementById('disconnected').classList.add('hidden');
+    document.getElementById('connected').classList.remove('hidden');
+    renderScoreboard();
+    rotateCode();
+    // O código roda a cada CODE_ROTATION_SECONDS (Config no admin, padrão 60s)
+    setInterval(rotateCode, 60000);
+
+    phlo = createPhloating(document.getElementById('phloating'));
+    // Repopula com quem já marcou presença hoje (GET /api/checkin/already/<evento>)
+    MEMBERS.slice(0, 3).forEach(m => phlo.addPhoto(m));
+    checkedIn = 3;
+    listenForCheckins();
+  }
+
+  function rotateCode() {
+    renderFakeQr(document.getElementById('qr'), Date.now(), 300);
+    // Reinicia a animação do anel a cada novo código
+    const ring = document.getElementById('ring');
+    const path = ring.querySelector('path');
+    path.style.animation = 'none';
+    void path.offsetWidth;
+    path.style.animation = '';
+  }
+
+  // No app, cada foto entra ao chegar um evento "memberCheckin" pelo WebSocket
+  function listenForCheckins() {
+    setInterval(() => {
+      if (checkedIn >= MEMBERS.length) return;
+      phlo.addPhoto(MEMBERS[checkedIn++]);
+    }, 4000);
+  }
+
+  document.getElementById('event-name')
+    .addEventListener('keyup', e => { if (e.key === 'Enter') connect(); });
+</script>
+</body>
+</html>

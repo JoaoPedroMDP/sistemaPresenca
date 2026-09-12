@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Erro — Jovens AV</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .error-screen {
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    height: 100dvh; text-align: center; padding: 1rem; background: var(--red-600);
+  }
+  .error-screen h1 {
+    font-size: 2.25rem; color: var(--white);
+    border-bottom: 2px solid #000; width: 75%;
+  }
+  .error-screen h3 { font-size: 1.5rem; margin-top: 1rem; color: #000; }
+</style>
+</head>
+<body>
+
+<!-- routes/checkin/[code]/+error.svelte -->
+<div class="error-screen">
+  <h1>400</h1>
+  <h3>Este código expirou. Escaneie o QR code novamente.</h3>
+</div>
+
+<script src="assets/app.js"></script>
+<script>stampVersion();</script>
+</body>
+</html>

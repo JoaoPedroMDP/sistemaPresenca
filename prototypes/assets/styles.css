@@ -1,0 +1,281 @@
+@import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@200..700&family=Courier+Prime:wght@400;700&display=swap');
+
+/* ===========================================================
+   Sistema de Presença — Design tokens (espelha Tailwind do app)
+   =========================================================== */
+:root {
+  --indigo-950: #1e1b4b;
+  --indigo-900: #312e81;
+  --indigo-700: #4338ca;
+  --indigo-500: #6366f1;
+  --indigo-400: #818cf8;
+  --emerald-600: #059669;
+  --emerald-500: #10b981;
+  --emerald-400: #34d399;
+  --red-600: #dc2626;
+  --red-500: #ef4444;
+  --gray-700: #374151;
+  --gray-500: #6b7280;
+  --gray-400: #9ca3af;
+  --gray-200: #e5e7eb;
+  --gray-100: #f3f4f6;
+  --white: #ffffff;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--white);
+  font-family: 'Readex Pro', system-ui, -apple-system, sans-serif;
+  color: var(--indigo-950);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-courier { font-family: 'Courier Prime', monospace; }
+
+/* ---------- Layout helpers ---------- */
+.screen { min-height: 100dvh; display: flex; flex-direction: column; }
+.center { display: flex; align-items: center; justify-content: center; }
+.col { display: flex; flex-direction: column; }
+.row { display: flex; flex-direction: row; }
+.gap-2 { gap: .5rem; } .gap-3 { gap: .75rem; } .gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; } .gap-8 { gap: 2rem; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.grow { flex: 1; }
+.text-center { text-align: center; }
+.relative { position: relative; }
+.hidden { display: none !important; }
+
+/* ---------- Tipografia ---------- */
+h1, h2, h3 { margin: 0; font-weight: 500; }
+.title-xl { font-size: 2.25rem; color: var(--indigo-900); }
+.title-lg { font-size: 1.875rem; color: var(--indigo-950); }
+.title-md { font-size: 1.5rem; color: var(--indigo-900); }
+.muted { color: var(--gray-500); font-size: .875rem; }
+.error-text { color: var(--red-500); font-size: .875rem; }
+
+/* ---------- Botões (espelha lib/inputs/Button.svelte) ---------- */
+.btn {
+  padding: .5rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--indigo-900);
+  color: var(--white);
+  border: 2px solid var(--indigo-900);
+  margin: .5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: filter .15s ease, transform .1s ease;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.25); }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn:disabled {
+  background: transparent;
+  color: var(--indigo-900);
+  cursor: not-allowed;
+  opacity: .6;
+}
+.btn-emerald { background: var(--emerald-500); border-color: var(--emerald-500); }
+.btn-ghost { background: transparent; color: var(--indigo-900); }
+.btn-danger { background: var(--red-600); border-color: var(--red-600); }
+.btn-lg { font-size: 1.25rem; padding: .875rem 2rem; }
+
+/* ---------- Inputs (espelha lib/inputs/Text.svelte) ---------- */
+.field { display: flex; flex-direction: column; gap: .25rem; }
+.label-text { color: var(--indigo-900); font-size: .875rem; }
+.input {
+  background: var(--white);
+  color: var(--indigo-900);
+  border: 3px solid var(--emerald-500);
+  border-radius: var(--radius-lg);
+  outline: none;
+  padding: .35rem .6rem;
+  font-family: inherit;
+  font-size: 1rem;
+}
+.input:focus { border-color: var(--emerald-400); box-shadow: 0 0 0 3px rgba(16,185,129,.2); }
+.input.invalid { border-color: var(--red-600); }
+
+.select {
+  color: var(--indigo-900);
+  border: 2px solid var(--indigo-900);
+  border-radius: var(--radius-md);
+  padding: .5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  background: var(--white);
+}
+.select.invalid { border-color: var(--red-600); }
+
+/* ---------- Navbar (layout (auth)) ---------- */
+.navbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem; background: var(--indigo-900); color: var(--white);
+}
+.navbar .brand { font-size: 1.25rem; font-weight: 700; }
+.navbar a, .navbar button {
+  color: var(--white); background: none; border: none;
+  font-family: inherit; font-size: 1rem; cursor: pointer; text-decoration: none;
+}
+.navbar a:hover, .navbar button:hover { text-decoration: underline; }
+
+/* ---------- Versão (canto inferior direito) ---------- */
+.version {
+  position: fixed; bottom: 0; right: .25rem;
+  color: var(--indigo-950); background: var(--white);
+  font-size: .75rem; z-index: 60;
+}
+
+/* ---------- Placar ---------- */
+.scoreboard {
+  display: flex; flex-direction: column; gap: .5rem;
+  min-width: 220px; padding: 1rem;
+  border-radius: var(--radius-2xl);
+  backdrop-filter: blur(12px);
+  /* z-10 no app: as fotos flutuantes passam por trás do placar */
+  position: relative; z-index: 10;
+}
+.scoreboard .head { font-size: .75rem; text-align: center; color: var(--indigo-400); letter-spacing: .05em; }
+.score-row {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .625rem 1rem; border-radius: var(--radius-lg);
+}
+.score-row.first { background: var(--emerald-500); }
+.score-row .pos { font-size: .75rem; color: var(--gray-400); width: 1.25rem; }
+.score-row.first .pos { color: var(--indigo-700); }
+.score-row .name { flex: 1; font-size: .875rem; color: var(--gray-700); }
+.score-row.first .name { font-weight: 600; color: var(--indigo-900); }
+.score-row .pts { font-size: .875rem; color: var(--gray-700); }
+.score-row.first .pts { color: var(--indigo-900); font-weight: 500; }
+
+/* ---------- Componente de membro (Phloating + lista do tablet) ---------- */
+.member {
+  --member-photo-size: 80px;
+  display: flex; flex-direction: column; align-items: center; gap: .25rem;
+}
+.member-photo-wrap { position: relative; line-height: 0; }
+.member-photo {
+  width: var(--member-photo-size); height: var(--member-photo-size);
+  border-radius: var(--radius-full); object-fit: cover;
+  border: 2px solid var(--indigo-900);
+  background: var(--white);
+}
+.member-name {
+  font-size: 15px; font-weight: 600; color: var(--indigo-950);
+  text-align: center; line-height: 1.2;
+  max-width: calc(var(--member-photo-size) * 2);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.member-hat {
+  position: absolute; right: -1rem; top: -1rem;
+  width: 2.5rem; height: 2.5rem; transform: rotate(30deg);
+  object-fit: contain; pointer-events: none; z-index: 1;
+}
+.member-confetti {
+  position: absolute; top: 100%; width: 100%; height: 100%; pointer-events: none;
+}
+.confetti {
+  position: absolute; width: 8px; height: 8px; top: 0;
+  left: var(--initial-x); opacity: 0;
+  animation: confetti-fall 2s infinite; animation-delay: var(--delay);
+}
+@keyframes confetti-fall {
+  0%   { transform: translate(-50%, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--target-x)), 200px) rotate(var(--rotation)); opacity: 0; }
+}
+
+/* ---------- Phloating ---------- */
+.floating-container { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.floating-item { position: absolute; top: 0; left: 0; will-change: transform; }
+
+/* ---------- QR ---------- */
+.qr-wrap { position: relative; padding: .75rem; }
+.countdown-ring {
+  fill: none; stroke: var(--indigo-900); stroke-width: 2.5; stroke-linecap: butt;
+  stroke-dasharray: 100 900; stroke-dashoffset: 0;
+  animation: drain linear infinite;
+}
+@keyframes drain {
+  98% { opacity: 1; }
+  to  { stroke-dashoffset: 100; opacity: 0; }
+}
+
+/* ---------- Modal ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(0,0,0,.7);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 1rem; gap: 1rem;
+}
+.modal-card {
+  background: var(--white); border-radius: var(--radius-2xl);
+  padding: 1.5rem; width: min(420px, 92vw);
+  display: flex; flex-direction: column; gap: 1rem;
+}
+
+/* ---------- Cartões de membro (modo tablet) ---------- */
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* align-content: start impede que as linhas estiquem e achatem os
+     cartões quando sobra pouca altura */
+  align-content: start;
+  gap: 1rem;
+  padding: 1rem 1.5rem 6rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.member-card {
+  display: flex; align-items: center; justify-content: center;
+  /* Recorta o confete na moldura; a folga extra no topo acomoda o chapéu,
+     que a rotação de 30° deixa mais alto que os 2.5rem nominais */
+  overflow: hidden;
+  padding: 1.75rem 1.25rem 1rem;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+.member-card:hover { border-color: var(--emerald-500); box-shadow: 0 4px 14px rgba(16,185,129,.18); }
+.member-card:active { transform: scale(.96); }
+
+/* ---------- Badge / pill ---------- */
+.pill {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .25rem .75rem; border-radius: var(--radius-full);
+  font-size: .8rem;
+}
+.pill-emerald { background: var(--emerald-500); color: var(--white); }
+.pill-indigo { background: var(--indigo-900); color: var(--white); }
+.pill-gray { background: var(--gray-100); color: var(--gray-700); }
+
+/* ---------- Erro de senha ---------- */
+.shake { animation: shake .4s; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+/* ---------- Ícones simples (substituem iconify do app) ---------- */
+.icon { display: inline-block; width: 1em; height: 1em; vertical-align: -.125em; }

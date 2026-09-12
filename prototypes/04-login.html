@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login — Jovens AV</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .login { height: 100dvh; display: flex; flex-direction: column;
+           align-items: center; justify-content: center; gap: 1rem; }
+  .login img { width: min(260px, 60vw); }
+</style>
+</head>
+<body>
+
+<div class="login">
+  <span id="message" class="title-md"></span>
+  <img src="assets/jovensLogoAzul.png" alt="Logo Jovens AV">
+  <label class="field">
+    <span class="label-text">Usuário</span>
+    <input id="username" class="input">
+  </label>
+  <label class="field">
+    <span class="label-text">Senha</span>
+    <input id="password" class="input" type="password">
+  </label>
+  <button class="btn" onclick="login()">Entrar</button>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+  stampVersion();
+
+  function login() {
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
+    if (!u || !p) {
+      document.getElementById('message').textContent = 'Preencha todos os campos';
+      return;
+    }
+    // POST /api/auth/login — em caso de sucesso vai para /me
+    location.href = '05-perfil.html';
+  }
+
+
+  document.getElementById('password')
+    .addEventListener('keyup', e => { if (e.key === 'Enter') login(); });
+</script>
+</body>
+</html>

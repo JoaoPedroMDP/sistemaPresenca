@@ -10,6 +10,7 @@
     import { callAlreadyCheckedIn } from '$lib/api/checkinApi.svelte';
     import Button from '$lib/inputs/Button.svelte';
     import { callGetEventScoreboard } from '$lib/api/scoreApi.svelte';
+    import { isBirthWeek } from '$lib/dateUtils';
 
 	let connected: boolean = $state(false);
 	let event_name: string = $state('Escola Sabatina');
@@ -48,20 +49,6 @@
 		if(e.key === 'Enter'){
 			await enterGroup(event_name);
 		}
-	}
-
-	function isBirthWeek(birthday: string | null): boolean {
-		if(!birthday) return false;
-
-		const today = new Date();
-		const birthDate = new Date(birthday);
-		const birthMonth = birthDate.getMonth();
-		const birthDay = birthDate.getDate();
-
-		const todayMonth = today.getMonth();
-		const todayDay = today.getDate();
-
-		return birthMonth === todayMonth && Math.abs(birthDay - todayDay) <= 5;
 	}
 
 	function memberCheckin(member: MemberCheckin) {

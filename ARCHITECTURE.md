@@ -25,6 +25,21 @@ Sistema de registro de presença por QR Code, com painel ao vivo (fotos flutuant
    - calcula pontos por horário via `TimeScoreRules.get_points_for_time_in_event` e retorna ao cliente.
 8. No painel, o evento `memberCheckin` adiciona a foto/nome do membro ao componente `Phloating` (fotos flutuando pela tela; quem está na semana do aniversário ganha chapéu de festa e confete). O placar (`GET /api/score/event/<nome>`) é exibido ao lado do QR Code.
 
+## Fluxo do modo dispositivo (check-in sem QR rotativo)
+
+Um aparelho liberado (hoje, um tablet que passa de mão em mão) marca presença
+sem que cada pessoa escaneie nada. O que impede alguém de abrir a mesma URL no
+próprio celular é a posse do código do dispositivo.
+
+1. No admin (`DeviceAdmin`), cria-se um `Device` para o evento. A tela de edição mostra o QR Code de ativação, apontando para `<SITE_URL>/checkin/device/<code>` (a `Config` `SITE_URL` define o host; padrão `http://localhost:5173`).
+2. O aparelho lê o QR e abre `/checkin/device/[code]`. Na primeira visita o front chama `POST /api/checkin/device/<code>/activate`, que resgata o código **uma única vez** (`Device.activate()` faz um UPDATE condicional em `activated_at`). Um segundo aparelho recebe 409.
+3. O código fica no `localStorage` (`storage/deviceStorage.ts`) e passa a ir no path de toda chamada do aparelho. Reabrir a URL não reativa nada: a lista abre direto.
+4. `GET /api/checkin/device/<code>/pending` devolve os membros que ainda não marcaram hoje, com foto e aniversário. A pessoa acha o próprio nome, confirma pela foto e o front chama `POST /api/checkin/device/<code>/<member_id>`.
+5. Daí para frente o fluxo é o mesmo do QR: `CheckinController.checkin` cria o `CheckIn`, difunde `memberCheckin` no WebSocket e devolve os pontos. Depois de 3s a tela volta sozinha para a lista.
+6. O código vale `Device.VALIDITY_DAYS` (30 dias) e pode ser cortado a qualquer momento pela ação "Revogar acesso" no admin — não há botão de encerrar no aparelho.
+
+O `Code` (QR rotativo) e o `Device` são tabelas separadas de propósito: o primeiro é um segredo efêmero compartilhado por vários scans, o segundo é a credencial durável de um aparelho.
+
 ## Back-end (`back/`)
 
 Camadas: **api** (rotas Ninja) → **controllers** (regra de negócio) → **models** (com métodos de domínio). Não há camada de repositories (foi removida).
@@ -35,7 +50,8 @@ Camadas: **api** (rotas Ninja) → **controllers** (regra de negócio) → **mod
 |---|---|
 | `Member` | Membro da comunidade. Liga-se opcionalmente a um `User` do Django. Tem foto e aniversário. |
 | `Event` | Evento recorrente (ex.: "Escola Sabatina"). Nome único; vira nome de grupo WebSocket. |
-| `Code` | Código UUID de acesso ao check-in, por evento. Rotacionado a cada 30s por thread (`code_timer.py`); válido por 60s; compartilhável entre vários scans. |
+| `Code` | Código UUID de acesso ao check-in, por evento. Rotacionado por thread (`code_timer.py`); válido por rotação + 20s; compartilhável entre vários scans. |
+| `Device` | Aparelho liberado para marcar presença sem QR rotativo. Código UUID por evento, resgatado uma única vez (`activated_at`), válido por `VALIDITY_DAYS` (30) e cortável (`revoked_at`). É a credencial que vai no path das rotas `/api/checkin/device/...`. |
 | `CheckIn` | Presença de um membro em (evento, data). `unique_together (member, date, event)` + criação idempotente. |
 | `Scoreboard` / `Score` | Quadro de pontuação e pontos por membro. |
 | `TimeScoreRules` | Faixas de horário → pontos por evento (ex.: chegou até 9h = 100 pts). Fonte da pontuação do placar. |
@@ -47,6 +63,7 @@ Todos herdam de `Base` (`created_at`/`updated_at`).
 
 - `auth.py` — `/api/auth/`: `login`, `logout`, `logged`. Autenticação por sessão (`SessionAuth`).
 - `checkin.py` — `/api/checkin/`: `pending/{code}` (valida código + lista pendentes), `POST {code}/{member_id}` (efetiva check-in), `history` (histórico do membro logado), `already/{event}` (quem já marcou hoje — usado para repopular o painel ao conectar).
+- `device.py` — `/api/checkin/device/`: `POST {code}/activate` (resgate único), `GET {code}/pending`, `POST {code}/{member_id}`. Router montado **antes** do `checkin_router` em `core/urls.py`, para `/checkin/device/...` não cair na rota genérica `{code}/{member_id}`.
 - `member.py` — `/api/member/`: `me`, `POST photo` (upload de foto de perfil).
 - `score.py` — `/api/score/`: `per-event` (pontuação do membro logado), `event/{nome}` (placar público do evento).
 
@@ -54,6 +71,7 @@ Todos herdam de `Base` (`created_at`/`updated_at`).
 
 - `checkin_controller.py` — orquestra check-in: cria `CheckIn`, notifica WebSocket, calcula pontos. Constantes `CHECKIN_BOARD = "Presença"` e `SABBATH_CLASS_EVENT = "Escola Sabatina"` (o check-in via QR Code é hardcoded para esse evento em `checkin_sabbath`).
 - `code_controller.py` — código corrente, rotação e validação (lança `ExpiredCodeError` se fora da janela).
+- `device_controller.py` — ativação (uso único) e validação do aparelho: lança `DeviceAlreadyActivatedError`, `DeviceNotActivatedError`, `DeviceRevokedError` ou `ExpiredDeviceError`.
 - `ws_controller.py` — envia mensagens ao channel layer: `send_current_code_for_event`, `rotate_code_for_event`, `send_member_checkin_for_event`.
 - `score_controller.py` / `scoreboard_controller.py` — pontuação por evento e quadros.
 - `event_controller.py`, `member_controller.py`, `user_controller.py` — get-or-create e utilitários.
@@ -81,6 +99,7 @@ SvelteKit em modo SPA estático. Alias `$events` → `src/lib/websocket/events`.
 
 - `/` — painel do administrador: input do nome do evento → conecta WebSocket → mostra QR Code + `Phloating` (fotos flutuantes) + placar (top 4).
 - `/checkin/[code]` — página aberta pelo scan: seleciona membro, marca presença, mostra pontos ganhos e redireciona para um quiz externo após 3s.
+- `/checkin/device/[code]` — modo dispositivo: ativa o aparelho na primeira visita e depois mostra a grade de membros pendentes com busca; ao tocar num nome, confirma pela foto, registra a presença e volta sozinho em 3s.
 - `/login` — login.
 - `/(auth)/me` — perfil do membro logado (layout `(auth)` exige sessão).
 
@@ -89,8 +108,8 @@ SvelteKit em modo SPA estático. Alias `$events` → `src/lib/websocket/events`.
 - `api/` — wrappers de fetch por domínio (`authApi`, `checkinApi`, `memberApi`, `scoreApi`) sobre `callFetch` em `index.svelte.ts` (trata 401 redirecionando para login; CSRF via cookie `csrftoken`).
 - `stores/` — estado global com runes (`$state`): `codeStore` (código atual do QR), `checkinStore` (membros presentes + padrão observer que alimenta o `Phloating`), `authStore`, `memberStore`.
 - `websocket/` — `socket.ts` (conexão, reconexão, join) e `events/` (padrão builder: payload cru → `NewCodeEvent` | `MemberCheckinEvent`, cada um com seu `handle()` que atualiza o store correspondente).
-- `components/` — `QrCode.svelte`, `Phloating.svelte` (animação física das fotos: velocidade, desaceleração, colisão com bordas; confete e chapéu para aniversariantes), `PhotoSelector.svelte`.
-- `storage/` — persistência em localStorage (auth, member).
+- `components/` — `QrCode.svelte`, `Member.svelte` (marcação única de um membro: foto com placeholder, nome e, na semana do aniversário, chapéu e confete), `Phloating.svelte` (animação física das fotos: velocidade, desaceleração, colisão com bordas; renderiza cada item com `Member`), `PhotoSelector.svelte`.
+- `storage/` — persistência em localStorage (auth, member, device).
 
 ## Infra e deploy
 

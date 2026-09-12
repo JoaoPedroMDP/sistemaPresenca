@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modo dispositivo — Confirmação</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  #main {
+    position: relative; height: 100dvh; overflow: hidden; background: var(--white);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  /* Mesma onda verde da tela de scan */
+  #main:before {
+    z-index: 0; content: ''; width: 10px; height: 10px; border-radius: 50%;
+    position: absolute; background-color: transparent;
+    transform: scale(1); transition: transform 1.5s ease-in-out;
+  }
+  #main[data-success="true"]:before {
+    background-color: var(--emerald-500); transform: scale(300);
+  }
+
+  #content {
+    z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 1.25rem;
+    transform: scale(1); transition: transform .7s cubic-bezier(.49,-0.43,.65,.83);
+  }
+  #content[data-success="true"] { transform: scale(0); }
+
+  #content img.face {
+    width: 190px; height: 190px; border-radius: var(--radius-full); object-fit: cover;
+    border: 3px solid var(--indigo-900);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 6px var(--emerald-500);
+  }
+
+  #points {
+    position: absolute; bottom: -5%; color: #000; font-size: 2rem; z-index: 10;
+    transform: scale(1);
+    transition: bottom 1.5s cubic-bezier(.29,.85,.66,.99),
+                transform 1.6s cubic-bezier(.5,.52,.69,.61);
+  }
+  #points[data-success="true"] { transform: scale(2); bottom: 50%; }
+
+  #done-msg {
+    position: absolute; z-index: 20; color: #fff; text-align: center;
+    opacity: 0; transition: opacity .5s ease 1.4s; display: flex;
+    flex-direction: column; align-items: center; gap: .5rem;
+  }
+  #done-msg[data-success="true"] { opacity: 1; }
+  #done-msg .big { font-size: 2.25rem; }
+  #done-msg .small { font-size: 1rem; opacity: .85; }
+</style>
+</head>
+<body>
+
+<div id="main" data-success="false">
+  <div id="content" data-success="false">
+    <img id="face" class="face" src="" alt="">
+    <h1 class="title-lg text-center" id="name">Ana Beatriz</h1>
+    <p class="muted">Confirme que é você para registrar a presença</p>
+    <div class="row gap-3">
+      <button class="btn btn-ghost btn-lg" onclick="history.back()">Não sou eu</button>
+      <button class="btn btn-emerald btn-lg" onclick="confirmCheckin()">Sou eu</button>
+    </div>
+  </div>
+
+  <span id="points" data-success="false">+ 100pts</span>
+
+  <div id="done-msg" data-success="false">
+    <span class="big">Presença registrada!</span>
+    <span class="small">Passe o tablet para a próxima pessoa</span>
+    <span class="small" id="countdown">Voltando à lista em 3s</span>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+  stampVersion();
+
+  const id = Number(new URLSearchParams(location.search).get('id')) || 1;
+  const member = MEMBERS.find(m => m.id === id) || MEMBERS[0];
+  document.getElementById('face').src = member.photo || PHOTO_PLACEHOLDER;
+  document.getElementById('name').textContent = member.name;
+
+  function confirmCheckin() {
+    // App real: POST /api/checkin/device/<code>/<member_id>, com o código do
+    // dispositivo (getDeviceCode()) no path. Mesma forma do check-in por QR,
+    // só que o código é fixo do aparelho em vez de rotativo.
+    document.getElementById('main').dataset.success = 'true';
+    document.getElementById('content').dataset.success = 'true';
+    document.getElementById('points').dataset.success = 'true';
+    document.getElementById('done-msg').dataset.success = 'true';
+
+    const done = JSON.parse(sessionStorage.getItem('proto_done') || '[]');
+    if (!done.includes(member.id)) done.push(member.id);
+    sessionStorage.setItem('proto_done', JSON.stringify(done));
+
+    let left = 3;
+    const cd = document.getElementById('countdown');
+    const timer = setInterval(() => {
+      left--;
+      cd.textContent = `Voltando à lista em ${left}s`;
+      if (left <= 0) {
+        clearInterval(timer);
+        location.href = '06-dispositivo-lista.html';
+      }
+    }, 1000);
+  }
+</script>
+</body>
+</html>

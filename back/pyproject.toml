@@ -14,5 +14,6 @@ dependencies = [
     "pytest>=8.3.5",
     "pytest-django>=4.11.1",
     "python-decouple>=3.8",
+    "qrcode>=8.2",
     "unidecode>=1.4.0",
 ]
