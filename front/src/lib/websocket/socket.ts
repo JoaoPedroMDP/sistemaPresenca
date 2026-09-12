@@ -11,7 +11,9 @@ function createSocket(event_name: string): Promise<boolean> {
     if (typeof window === 'undefined') return Promise.resolve(false);
 
     return new Promise((resolve) => {
-        const WS_URL = `ws://${window.location.host}/ws`;
+        // wss sob HTTPS: o navegador bloqueia ws:// em página segura
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const WS_URL = `${protocol}://${window.location.host}/ws`;
         const ws = new WebSocket(WS_URL);
     
         ws.onopen = (): void => {

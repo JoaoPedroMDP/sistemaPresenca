@@ -2,8 +2,9 @@ from datetime import datetime
 import logging
 from typing import Dict, List
 
-from django.utils import timezone
+from django.db import transaction
 from django.db.models import QuerySet
+from django.utils import timezone
 
 from presenca.controllers.event_controller import EventController
 from presenca.controllers.ws_controller import WsController
@@ -29,18 +30,23 @@ class CheckinController:
     @staticmethod
     def checkin(member: Member, event: Event, checkin_time: datetime):
         # Idempotente por dia: segundo checkin no mesmo dia só devolve os
-        # pontos do primeiro, sem criar registro nem notificar o painel
-        existing = CheckIn.objects.filter(
-            member=member,
-            event=event,
-            date__date=timezone.localtime(checkin_time).date()
-        ).first()
-        if existing:
-            points = TimeScoreRules.get_points_for_time_in_event(event, existing.date)
-            lgr.info(f"{member.name} já tinha checkin hoje no evento {event.name}. Pontuação mantida: {points}")
-            return points
+        # pontos do primeiro, sem criar registro nem notificar o painel.
+        # O atomic() com transaction_mode IMMEDIATE (settings) serializa o
+        # "verifica e cria": dois toques simultâneos não geram dois CheckIn.
+        with transaction.atomic():
+            existing = CheckIn.objects.filter(
+                member=member,
+                event=event,
+                date__date=timezone.localtime(checkin_time).date()
+            ).first()
+            if existing:
+                points = TimeScoreRules.get_points_for_time_in_event(event, existing.date)
+                lgr.info(f"{member.name} já tinha checkin hoje no evento {event.name}. Pontuação mantida: {points}")
+                return points
 
-        CheckIn.create_idempotent(member, event, checkin_time)
+            CheckIn.create_idempotent(member, event, checkin_time)
+
+        # Fora da transação: o painel só é avisado depois do commit
         WsController.send_member_checkin_for_event(member, event)
 
         points = TimeScoreRules.get_points_for_time_in_event(event, checkin_time)

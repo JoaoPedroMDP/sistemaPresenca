@@ -20,17 +20,17 @@ async function callLogin(username: string, password: string): Promise<ApiRespons
         ensureLogin: false,
     });
 
+    // Erro vem com status HTTP real (400/401) e a mensagem no corpo
     if(!response.ok){
-        console.log("Erro no login:", response.status, response.statusText);
-        return new ApiResponse(false, response.statusText);
+        let message = response.statusText;
+        try {
+            message = (await response.json()).error ?? message;
+        } catch {}
+        console.log("Erro no login:", response.status, message);
+        return new ApiResponse(false, message);
     }
 
-    let data = await response.json();
-    if(data.error){
-        console.log("Erro na resposta do login:", data.error);
-        return new ApiResponse(false, data.error);
-    }
-    return new ApiResponse(true, "Login successful", data);
+    return new ApiResponse(true, "Login successful", await response.json());
 }
 
 

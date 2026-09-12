@@ -114,6 +114,15 @@ class Code(Base):
     ROTATION_CONFIG_KEY = "CODE_ROTATION_SECONDS"
     # Folga além da rotação, para quem escaneia perto da troca
     VALIDITY_GRACE_SECONDS = 20
+    # Códigos são um por rotação e nunca mais usados depois de expirar;
+    # ficam um ano para auditoria e depois são apagados (purge_old)
+    RETENTION_DAYS = 365
+
+    @classmethod
+    def purge_old(cls) -> int:
+        threshold = timezone.now() - timedelta(days=cls.RETENTION_DAYS)
+        deleted, _ = cls.objects.filter(created_at__lt=threshold).delete()
+        return deleted
 
     @classmethod
     def rotation_seconds(cls) -> int:

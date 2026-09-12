@@ -122,3 +122,19 @@ def test_per_event_sums_points_of_logged_member(authenticated_client, code, memb
 
     assert response.status_code == 200
     assert response.json() == {code.event.name: 50.0}
+
+
+def test_scoreboard_for_unknown_event_returns_404(client, db):
+    response = client.get("/api/score/event/Nao%20Existe")
+
+    assert response.status_code == 404
+    assert "não encontrado" in response.json()["error"]
+
+
+def test_scoreboard_endpoint_returns_sorted_scores(client, code, member):
+    client.post(f"/api/checkin/{code.code}/{member.id}")
+
+    response = client.get(f"/api/score/event/{code.event.name}")
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True, "data": [{"name": member.name, "score": 50.0}]}

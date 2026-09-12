@@ -59,6 +59,9 @@ def test_rotate_code_always_creates_new(event, code):
     assert Code.objects.filter(event=event).count() == 2
 
 
+# transaction=True: a thread acessa o banco (purge de códigos antigos) e o
+# lock IMMEDIATE da transação do teste a deixaria esperando
+@pytest.mark.django_db(transaction=True)
 def test_code_timer_stops_only_after_last_listener_leaves(event):
     group_name = event.as_websocket_group_name()
 
@@ -74,3 +77,16 @@ def test_code_timer_stops_only_after_last_listener_leaves(event):
     assert group_name not in CodeTimerRegistry._timers
     timer.thread.join(timeout=2)
     assert not timer.thread.is_alive()
+
+
+def test_purge_old_deletes_only_codes_past_retention(event, code):
+    old = Code.create_for_event(event)
+    Code.objects.filter(id=old.id).update(
+        created_at=timezone.now() - timedelta(days=Code.RETENTION_DAYS + 1)
+    )
+
+    deleted = Code.purge_old()
+
+    assert deleted == 1
+    assert Code.objects.filter(id=code.id).exists()
+    assert not Code.objects.filter(id=old.id).exists()

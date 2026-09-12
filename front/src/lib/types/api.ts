@@ -1,6 +1,7 @@
+// Espelha MeUserResponse do back (presenca/api/member.py)
 interface User{
     id: number;
-    username: string;
+    email: string;
 }
 
 interface MemberI{
@@ -29,7 +30,7 @@ class Member{
             json.birthday,
             json.user ? {
                 id: json.user.id,
-                username: json.user.username
+                email: json.user.email
             } : null,
             json.photo
         );

@@ -9,10 +9,22 @@
 
 	const props: Props = $props();
 
+    // Só renderiza a página depois da resposta do back; sem sessão vai
+    // direto para o login
     $effect(() => {
-        authStore.getLoggedFromServer();
-        checkedAuth = true;
+        authStore.getLoggedFromServer().then(async (logged) => {
+            if(!logged){
+                await authStore.goToLogin();
+                return;
+            }
+            checkedAuth = true;
+        });
     })
+
+    async function logout(){
+        await authStore.logout();
+        await authStore.goToLogin();
+    }
 </script>
 
 <div>
@@ -21,7 +33,7 @@
             <span class="text-xl font-bold">Jovens AV</span>
             <div class="flex gap-4">
                 <a href="/me" class="hover:underline">Perfil</a>
-                <button onclick={authStore.logout} class="hover:underline">Sair</button>
+                <button onclick={logout} class="hover:underline">Sair</button>
             </div>
         </nav>
         {@render props.children?.()}

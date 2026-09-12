@@ -73,7 +73,7 @@
                 <span class="icon-[fa6-solid--cake-candles]"></span>
                 <span class="leading-none">{formatDateInUTC(member.birthday)}</span>
             </div>
-            <span class="text-gray-500 text-sm">{member.user?.username}</span>
+            <span class="text-gray-500 text-sm">{member.user?.email}</span>
         </div>
         {#if Object.keys(checkinHistory).length > 0}
             <div class="flex flex-col items-center p-4 ring-1 ring-indigo-900 rounded-xl w-full gap-2 mt-4">

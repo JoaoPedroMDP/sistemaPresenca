@@ -39,7 +39,7 @@ def get_scoreboard_for_event(request, event_name: str):
         event = Event.objects.get(name=event_name)
     except Event.DoesNotExist:
         lgr.warning(f"Evento '{event_name}' não encontrado.")
-        return {"success": False, "message": f"Evento '{event_name}' não encontrado."}
+        return JsonResponse({"error_code": 404, "error": f"Evento '{event_name}' não encontrado."}, status=404)
 
     scoreboard = ScoreController.get_scoreboard_for_event(event)
     lgr.info(f"Retornando placar para o evento '{event_name}'.")

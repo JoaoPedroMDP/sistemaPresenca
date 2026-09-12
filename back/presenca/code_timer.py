@@ -40,12 +40,25 @@ class _EventCodeTimer:
             lgr.exception("Erro ao ler CODE_ROTATION_SECONDS da Config, usando padrão")
             return 60
 
+    def _purge_old_codes(self, Code):
+        # Roda uma vez por painel aberto: barato e suficiente para a tabela
+        # não crescer sem limite
+        try:
+            deleted = Code.purge_old()
+            if deleted:
+                lgr.info(f"{deleted} código(s) com mais de {Code.RETENTION_DAYS} dias apagado(s)")
+        except Exception:
+            lgr.exception("Erro ao apagar códigos antigos")
+        finally:
+            close_old_connections()
+
     def _run(self):
         # Imports adiados para evitar import circular com ws_controller
         from presenca.controllers.ws_controller import WsController
-        from presenca.models import Event
+        from presenca.models import Code, Event
 
         lgr.info(f"Timer de código iniciado para o grupo '{self.group_name}'")
+        self._purge_old_codes(Code)
         while not self.stop_signal.wait(self._rotation_seconds()):
             try:
                 event = Event.objects.get(id=self.event_id)

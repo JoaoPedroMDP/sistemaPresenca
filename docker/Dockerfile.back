@@ -3,8 +3,11 @@ WORKDIR /app
 
 RUN apk add --no-cache tzdata
 
+# Produção: só dependências de runtime. O compose de teste passa
+# INSTALL_DEV=true para trazer pytest.
+ARG INSTALL_DEV=false
 COPY pyproject.toml uv.lock /app/
-RUN uv sync
+RUN if [ "$INSTALL_DEV" = "true" ]; then uv sync --frozen; else uv sync --frozen --no-dev; fi
 
 COPY . /app
 

@@ -1,4 +1,6 @@
 from pathlib import Path
+import tempfile
+
 from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -68,6 +70,18 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': config('DJANGO_DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
+        'OPTIONS': {
+            # BEGIN IMMEDIATE: transaction.atomic() já pega o lock de escrita
+            # no início, então "verifica e cria" (ex.: checkin do dia) não
+            # corre em paralelo com outra transação igual.
+            'transaction_mode': 'IMMEDIATE',
+        },
+        # Testes em arquivo, não em memória: o SQLite em memória compartilhada
+        # usa lock por tabela sem espera ("database table is locked"), o que
+        # impede testar concorrência do checkin
+        'TEST': {
+            'NAME': str(Path(tempfile.gettempdir()) / 'sistema-presenca-test.sqlite3'),
+        },
     }
 }
 
@@ -119,6 +133,10 @@ CHANNEL_LAYERS = {
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver', cast=Csv())
 
 
+# Diretório montado no docker-compose (./back/logs:/app/logs)
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -134,7 +152,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'presenca.log',
+            'filename': LOG_DIR / 'presenca.log',
             'formatter': 'default',
         }
     },
@@ -148,21 +166,22 @@ LOGGING = {
 }
 
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
         "OPTIONS": {
-            "location": "media/",
-            "base_url": "/media/",
+            # Absoluto: antes era "media/" relativo ao cwd
+            "location": MEDIA_ROOT,
+            "base_url": MEDIA_URL,
         },
     },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",

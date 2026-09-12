@@ -1,7 +1,7 @@
 # Revisão — Sistema de Presença
 
 Análise feita sobre a branch `device` (commit `b8959b8`). Suíte de testes do back
-executada localmente: 54 testes passando. `svelte-check` do front: 19 erros e
+executada localmente: 54 testes passando. `svelte-check` do front: 18 erros e
 2 avisos, todos anteriores a esta revisão (lista em B5).
 
 Prioridade: **Alta** = bug que afeta o uso real ou segurança; **Média** = defeito
@@ -56,39 +56,39 @@ Novo ouvinte recebe `CodeController.get_current_code`, que reutiliza um código 
 
 ## Média
 
-### M1. `ws://` fixo no front
+### M1. `ws://` fixo no front — **corrigido**
 
 `socket.ts` monta `ws://${window.location.host}/ws`. Em HTTPS o navegador bloqueia. Usar `location.protocol === 'https:' ? 'wss' : 'ws'`.
 
-### M2. Contrato `login` e `score/event` devolvem erro com HTTP 200
+### M2. Contrato `login` e `score/event` devolvem erro com HTTP 200 — **corrigido**
 
 `POST /api/auth/login` retorna `{"error_code": 401, ...}` com status 200; `GET /api/score/event/{nome}` retorna `{"success": false}` com 200. O resto da API usa `JsonResponse(..., status=N)`. O front compensa lendo `data.error`. Padronizar para status HTTP real.
 
-### M3. Corrida no check-in do mesmo membro no mesmo segundo
+### M3. Corrida no check-in do mesmo membro no mesmo segundo — **corrigido**
 
-`CheckinController.checkin` faz `filter(...).first()` e depois `create`. Duas requisições simultâneas (toque duplo no tablet, dois scans) passam pelo `first()` vazio e criam dois `CheckIn` com timestamps diferentes; `unique_together (member, date, event)` não impede porque a data-hora difere. O painel recebe dois `memberCheckin` (o front deduplica por nome, o que mascara o problema) e o placar conta em dobro. Trocar `unique_together` para (member, event, dia) via campo `date` separado ou `UniqueConstraint` com expressão, e tratar a `IntegrityError` no controller.
+`CheckinController.checkin` faz `filter(...).first()` e depois `create`. Duas requisições simultâneas (toque duplo no tablet, dois scans) passam pelo `first()` vazio e criam dois `CheckIn` com timestamps diferentes; `unique_together (member, date, event)` não impede porque a data-hora difere. O painel recebe dois `memberCheckin` (o front deduplica por nome, o que mascara o problema) e o placar conta em dobro. Resolvido sem migração: `transaction.atomic()` no controller + `transaction_mode: IMMEDIATE` no SQLite serializam o "verifica e cria" (teste em `tests/test_checkin_concurrency.py`). Uma `UniqueConstraint` por (member, event, dia) continuaria valendo como garantia no banco, mas exige migração e não depende mais do SQLite.
 
-### M4. Tabela `Code` cresce sem limite
+### M4. Tabela `Code` cresce sem limite — **corrigido**
 
 Um `Code` por minuto por evento, enquanto houver painel aberto; nada apaga. Em um ano de uso semanal são milhares de linhas inúteis. Adicionar limpeza (command ou na própria thread: apagar códigos com `created_at` anterior à validade).
 
-### M5. Cache de membro no front é opaco e quebra com erro
+### M5. Cache de membro no front é opaco e quebra com erro — **corrigido**
 
 `memberStore.getMember`: quando `callMe` falha, chama `goToLogin()` e continua para `Member.fromJson(undefined)`, que lança `TypeError`. Além disso, `types/api.ts` tipa `User.username`, mas a API devolve `email` (`MeUserResponse`); `/me` renderiza `member.user?.username` como `undefined`.
 
-### M6. Datas de aniversário com off-by-one
+### M6. Datas de aniversário com off-by-one — **corrigido**
 
 `dateUtils.isBirthWeek` faz `new Date("2000-01-02")` (interpretado como UTC meia-noite) e compara com `getDate()` local. Em `America/Sao_Paulo` isso vira 1º de janeiro; na fronteira do mês a semana do aniversário some (`getMonth()` diferente). `formatDateInUTC` contorna para exibição, mas o chapéu/confete usa a versão errada. Comparar componentes de data em UTC ou construir a data com `new Date(y, m - 1, d)`.
 
-### M7. Verificação de autenticação no layout `(auth)` não bloqueia nada
+### M7. Verificação de autenticação no layout `(auth)` não bloqueia nada — **corrigido**
 
 `routes/(auth)/+layout.svelte`: `checkedAuth = true` é setado logo após disparar `getLoggedFromServer()` sem `await`. A tela "Verificando autenticação..." praticamente nunca aparece e a página filha renderiza antes da resposta. Após `logout` não há redirecionamento.
 
-### M8. Logs e mídia em caminhos que o Docker não persiste
+### M8. Logs e mídia em caminhos que o Docker não persiste — **corrigido**
 
 `LOGGING.file` grava em `BASE_DIR/presenca.log` (`/app/presenca.log`), mas o compose monta `./back/logs:/app/logs`, que nada usa. `STORAGES.default.location = "media/"` é relativo ao cwd e `MEDIA_ROOT = BASE_DIR / 'media'` é absoluto; hoje coincidem porque o `WORKDIR` é `/app`, mas basta o comando mudar de diretório para divergir. Apontar o log para `logs/` e usar `MEDIA_ROOT` no `STORAGES`.
 
-### M9. Imagem de produção do back carrega dependências de dev
+### M9. Imagem de produção do back carrega dependências de dev — **corrigido**
 
 `pyproject.toml` lista `pytest`, `pytest-django`, `ipdb` e `django-extensions` como dependências principais. Mover para `[dependency-groups] dev` e usar `uv sync --no-dev` no `Dockerfile.back`. O `readme = "README.md"` aponta para arquivo inexistente.
 
@@ -145,11 +145,10 @@ Todas as rotas logam `INICIO`/`FIM` em `INFO` com f-strings avaliadas mesmo com 
 
 ### B5. Front — tipagem e pequenos defeitos
 
-`bun run check` (svelte-check) hoje falha com 19 erros. Agrupados:
+`bun run check` (svelte-check) hoje falha com 18 erros. Agrupados:
 - `ApiResponse.data` é `object`: todo consumidor acessa `.members`, `.data`, indexa por string (`+page.svelte`, `checkin/[code]/+page.svelte`, `(auth)/me/+page.svelte`). Tipar `ApiResponse<T>` com generic.
 - `bind:this={phloating}` tipado como `PhloatingHandlers` não bate com o tipo do componente Svelte 5 (`+page.svelte`, `teste/+page.svelte`). Usar `ReturnType<typeof Phloating>` ou exportar o tipo do próprio componente.
 - `scoreboard = $state([])` infere `never[]` (`entry.name`, `entry.score`).
-- `memberStorage.ts` importa `memberI` (o tipo se chama `MemberI`).
 - `__APP_VERSION__` sem declaração global (`app.d.ts`); `vite.config.ts` sem `@types/node`.
 - `+error.svelte`: `page.error` possivelmente `null`.
 - `PhotoSelector.svelte`: `canvas` não declarado com `$state` (aviso `non_reactive_update`); `role="img"` em `<canvas>`.
@@ -176,5 +175,4 @@ Sem cobertura para: rotas de auth, `import_checkins`/`export_checkins`, ação `
 2. A4 e M4 juntos (mexem na thread e no ciclo de vida do `Code`).
 3. A2 e M11 (semântica de `Event.start`/`end` e placar ao vivo).
 4. A7 e M8/M9/M10 (configuração, imagem e deploy).
-5. M3 exige migração: planejar com o desenvolvedor antes.
 6. Limpezas B1–B7.

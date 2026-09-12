@@ -53,9 +53,9 @@ Camadas: **api** (rotas Ninja) → **controllers** (regra de negócio) → **mod
 |---|---|
 | `Member` | Membro da comunidade. Liga-se opcionalmente a um `User` do Django. Tem foto (`FileField`, `images/members/`) e aniversário. `to_checkin()` é o payload usado no WebSocket e nas listas públicas. |
 | `Event` | Evento recorrente (ex.: "Escola Sabatina"). Nome único; vira nome de grupo WebSocket (`lower()` + espaços → `_`). Tem `start`/`end` (default `timezone.now`), usados só para recortar o histórico do membro. |
-| `Code` | Código UUID de acesso ao check-in, por evento. Rotacionado por thread (`code_timer.py`); válido por rotação + 20s; compartilhável entre vários scans. Nunca é apagado — a tabela cresce um registro por rotação enquanto houver painel aberto. |
+| `Code` | Código UUID de acesso ao check-in, por evento. Rotacionado por thread (`code_timer.py`); válido por rotação + 20s; compartilhável entre vários scans. Guardado por `RETENTION_DAYS` (365); `Code.purge_old()` apaga os mais antigos e roda toda vez que uma thread de rotação nasce. |
 | `Device` | Aparelho liberado para marcar presença sem QR rotativo. Código UUID por evento, resgatado uma única vez (`activated_at`), válido por `VALIDITY_DAYS` (30) e cortável (`revoked_at`). É a credencial que vai no path das rotas `/api/checkin/device/...`. |
-| `CheckIn` | Presença de um membro em (evento, data-hora). `unique_together (member, date, event)` + criação idempotente por timestamp exato. A idempotência **por dia** fica em `CheckinController.checkin`. |
+| `CheckIn` | Presença de um membro em (evento, data-hora). `unique_together (member, date, event)` + criação idempotente por timestamp exato. A idempotência **por dia** fica em `CheckinController.checkin`, dentro de `transaction.atomic()`; com `transaction_mode: IMMEDIATE` no SQLite, dois check-ins simultâneos do mesmo membro são serializados e geram um único registro. |
 | `Scoreboard` / `Score` | Quadro de pontuação e pontos acumulados por membro. **Não são usados pela API**: o placar e os pontos por evento são calculados on-the-fly a partir dos `CheckIn` + `TimeScoreRules`. Só `populate_db` cria um `Scoreboard`; `ScoreboardController.add_points` não tem chamador. |
 | `TimeScoreRules` | Faixas de horário → pontos por evento (ex.: chegou até 9h = 100 pts). Fonte da pontuação do placar. Comparação feita em horário local (`America/Sao_Paulo`). Sem validação de sobreposição; em caso de faixas sobrepostas vale a primeira encontrada. |
 | `Config` | Variáveis de ambiente em runtime, editáveis no admin. Chave/valor + tipo (`str`/`int`/`float`/`bool`); `coerce()` converte o valor para o tipo da linha, `get_value(key, default)` busca já coagido. Keys em uso: `CODE_ROTATION_SECONDS` (seed na 0014) e `SITE_URL` (sem seed). |
@@ -66,19 +66,19 @@ Todos herdam de `Base` (`created_at`/`updated_at`).
 
 ### API (`presenca/api/`, montada em `core/urls.py` sob `/api/`)
 
-Convenções: rotas públicas (sem `auth`) para o fluxo de check-in; `SessionAuth` para o que depende do membro logado. Erros são devolvidos como `JsonResponse({"error_code": N, "error": "..."}, status=N)` — com exceções listadas em `REVIEW.md`.
+Convenções: rotas públicas (sem `auth`) para o fluxo de check-in; `SessionAuth` para o que depende do membro logado. Erros são sempre `JsonResponse({"error_code": N, "error": "..."}, status=N)` com o status HTTP real.
 
-- `auth.py` — `/api/auth/`: `POST login` (username é normalizado para minúsculas), `GET logout`, `GET logged`. Autenticação por sessão (`SessionAuth`, cookie `sessionid`).
+- `auth.py` — `/api/auth/`: `POST login` (username é normalizado para minúsculas; campos vazios → 400, credenciais inválidas → 401), `GET logout`, `GET logged`. Autenticação por sessão (`SessionAuth`, cookie `sessionid`).
 - `checkin.py` — `/api/checkin/`: `GET pending/{code}` (valida código + lista pendentes), `POST {code}/{member_id}` (efetiva check-in), `GET history` (histórico do membro logado, até 6 por evento, recortado por `Event.start`/`end`), `GET already/{event}` (quem já marcou hoje — usado para repopular o painel ao conectar; evento inexistente → 404).
 - `device.py` — `/api/checkin/device/`: `POST {code}/activate` (resgate único), `GET {code}/pending`, `POST {code}/{member_id}`. Router montado **antes** do `checkin_router` em `core/urls.py`, para `/checkin/device/...` não cair na rota genérica `{code}/{member_id}`. Erros de credencial (não ativado, revogado, expirado) → 401; código já resgatado → 409.
 - `member.py` — `/api/member/`: `GET me`, `POST photo` (upload multipart no campo `photo`; exige `content_type` `image/*` e até 5 MB (`PHOTO_MAX_BYTES`), senão 400; apaga a foto anterior e salva com nome `<slug>_profile_<timestamp>`). Usuário logado sem `Member` → 404 nas duas rotas, igual a `history` e `per-event`.
-- `score.py` — `/api/score/`: `GET per-event` (pontuação do membro logado por evento), `GET event/{nome}` (placar público do evento: lista `{name, score}` ordenada desc).
+- `score.py` — `/api/score/`: `GET per-event` (pontuação do membro logado por evento), `GET event/{nome}` (placar público do evento: `{success, data: [{name, score}]}` ordenado desc; evento inexistente → 404).
 
 Documentação OpenAPI gerada pelo Ninja em `/api/docs`.
 
 ### Controllers (`presenca/controllers/`)
 
-- `checkin_controller.py` — orquestra check-in: verifica check-in existente no dia, cria `CheckIn`, notifica WebSocket, calcula pontos. Constante `CHECKIN_BOARD = "Presença"` (não usada). O evento vem sempre do `Code` ou do `Device`; não há mais evento fixo.
+- `checkin_controller.py` — orquestra check-in: dentro de uma transação verifica check-in existente no dia e cria o `CheckIn`; após o commit notifica o WebSocket e calcula pontos. Constante `CHECKIN_BOARD = "Presença"` (não usada). O evento vem sempre do `Code` ou do `Device`; não há mais evento fixo.
 - `code_controller.py` — código corrente, rotação e validação (lança `ExpiredCodeError` se fora da janela).
 - `device_controller.py` — ativação (uso único) e validação do aparelho: lança `DeviceAlreadyActivatedError`, `DeviceNotActivatedError`, `DeviceRevokedError` ou `ExpiredDeviceError`.
 - `ws_controller.py` — envia mensagens ao channel layer: `send_current_code_for_event`, `rotate_code_for_event`, `send_member_checkin_for_event`.
@@ -111,7 +111,7 @@ Exceções de domínio em `presenca/errors.py`; constantes de horário (`DAY_STA
 
 ### Configuração (`core/settings.py`)
 
-Variáveis via `python-decouple` (`back/.env`, exemplo em `back/.env.example`): `DJANGO_DEBUG` (default `False`), `DJANGO_DB_NAME` (default `back/db.sqlite3`), `ALLOWED_HOSTS` (default `localhost,127.0.0.1,testserver`). Timezone `America/Sao_Paulo`, idioma `pt-br`, `USE_TZ = True`. Logger `presenca` em nível DEBUG para console e arquivo `back/presenca.log`. Mídia em `media/` (`STORAGES.default.location` relativo ao cwd; `MEDIA_ROOT = BASE_DIR / 'media'`). `CSRF_TRUSTED_ORIGINS` hardcoded (localhost, um IP de rede local e um IP público). `SECRET_KEY` hardcoded.
+Variáveis via `python-decouple` (`back/.env`, exemplo em `back/.env.example`): `DJANGO_DEBUG` (default `False`), `DJANGO_DB_NAME` (default `back/db.sqlite3`), `ALLOWED_HOSTS` (default `localhost,127.0.0.1,testserver`). SQLite com `transaction_mode: IMMEDIATE` (todo `atomic()` abre com `BEGIN IMMEDIATE`) e banco de teste em arquivo no diretório temporário do sistema (em memória o SQLite não espera lock de tabela, o que inviabiliza testes de concorrência). Timezone `America/Sao_Paulo`, idioma `pt-br`, `USE_TZ = True`. Logger `presenca` em nível DEBUG para console e arquivo `back/logs/presenca.log` (`LOG_DIR`, criado no import do settings e montado pelo compose). Mídia em `MEDIA_ROOT = BASE_DIR / 'media'`, mesmo caminho usado no `STORAGES`. `CSRF_TRUSTED_ORIGINS` hardcoded (localhost, um IP de rede local e um IP público). `SECRET_KEY` hardcoded.
 
 ## Front-end (`front/`)
 
@@ -125,23 +125,23 @@ Em desenvolvimento, o Vite (`bun run dev`, porta 3000) faz proxy de `/api`, `/me
 - `/checkin/[code]` — página aberta pelo scan: seleciona membro em um `<select>`, marca presença, mostra pontos ganhos e redireciona para um quiz externo após 3s. `+error.svelte` cobre erros de rota.
 - `/checkin/device/[code]` — modo dispositivo: ativa o aparelho na primeira visita e depois mostra a grade de membros pendentes com busca; ao tocar num nome, confirma pela foto, registra a presença e volta sozinho em 3s.
 - `/login` — login por usuário e senha; redireciona para `/me`.
-- `/(auth)/me` — perfil do membro logado: foto com recorte (`PhotoSelector`), aniversário, histórico de check-ins e pontos por evento. O layout `(auth)` chama `authStore.getLoggedFromServer()` ao montar e mostra a barra com "Sair".
+- `/(auth)/me` — perfil do membro logado: foto com recorte (`PhotoSelector`), aniversário, histórico de check-ins e pontos por evento. O layout `(auth)` espera `authStore.getLoggedFromServer()` antes de renderizar a página; sem sessão redireciona para `/login`. "Sair" faz logout e também vai para `/login`.
 - `/teste` — página de desenvolvimento que enche o `Phloating` com fotos falsas (`debug=true`). Vai para o build de produção.
 
 ### Estrutura de `src/lib/`
 
 - `api/` — wrappers de fetch por domínio (`authApi`, `checkinApi`, `deviceApi`, `memberApi`, `scoreApi`) sobre `callFetch` em `index.svelte.ts`. Cada wrapper devolve `ApiResponse {success, message, data}`. `callFetch` redireciona para `/login` em 401 quando `ensureLogin` (padrão `true`); rotas públicas passam `ensureLogin: false`. CSRF: `getCsrfToken()` lê o cookie `csrftoken` e só o upload de foto o envia (no corpo multipart).
 - `stores/` — estado global com runes (`$state`): `codeStore` (código atual do QR + `expiresAt`), `socketStore` (último erro vindo do WebSocket), `checkinStore` (membros presentes, deduplicados por nome, + padrão observer que alimenta o `Phloating`), `authStore` (login/logout/`isLogged`/`getLoggedFromServer`), `memberStore` (membro logado, com cache em localStorage).
-- `websocket/` — `socket.ts` (singleton `socket.current`, conexão via `ws://<host>/ws`, join, tentativa de reconexão) e `events/` (padrão builder: payload cru → `NewCodeEvent` | `MemberCheckinEvent` | `ErrorEvent`, cada um com seu `handle()` que atualiza o store correspondente).
+- `websocket/` — `socket.ts` (singleton `socket.current`, conexão via `ws://` ou `wss://` conforme o protocolo da página, join, reconexão em queda) e `events/` (padrão builder: payload cru → `NewCodeEvent` | `MemberCheckinEvent` | `ErrorEvent`, cada um com seu `handle()` que atualiza o store correspondente).
 - `components/` — `QrCode.svelte` (QR via `@svelte-put/qr` com logo, anel de contagem), `Member.svelte` (marcação única de um membro: foto com placeholder, nome e, na semana do aniversário, chapéu e confete), `Phloating.svelte` (animação física das fotos: velocidade, desaceleração, colisão com bordas medindo o tamanho real do nó; renderiza cada item com `Member`), `PhotoSelector.svelte` (seleção, recorte circular com drag/pinch/scroll em canvas e upload JPEG 400×400).
 - `inputs/` — `Button.svelte` e `Text.svelte`, wrappers Tailwind sem tipagem de props.
 - `storage/` — persistência em localStorage com envelope `{version, expiresAt, data}` (`index.ts`): `authStorage` (key `auth`, TTL 5 min), `memberStorage` (key `member`, TTL 5 min), `deviceStorage` (key `device`, TTL igual à validade do `Device`). Versão diferente ou expirado → volta ao default.
-- `dateUtils.ts` — `formatDateInUTC` e `isBirthWeek` (mesmo mês e ±5 dias).
-- `types/api.ts` — `MemberI`/`Member` (o `User` tipado com `username`, mas a API devolve `email`).
+- `dateUtils.ts` — `formatDateInUTC` e `isBirthWeek` (aniversário a até 5 dias de hoje, cruzando mês e ano; lê `AAAA-MM-DD` como data local).
+- `types/api.ts` — `MemberI`/`Member`/`User` (`{id, email}`, espelho de `MeUserResponse`).
 
 ## Infra e deploy
 
-- **Dev (Docker)**: `docker-compose-dev.yml` builda back (`docker/Dockerfile.back`: imagem `uv:alpine`, `uv sync`, entrypoint roda `collectstatic`, `migrate` e `daphne`) e front (`docker/Dockerfile.front`: `bun run build` e um container `alpine` que copia o build para o volume `front_build/` e fica em `tail -f`). Caddy expõe `:3000` (front + proxy de `/api`, `/ws`, `/media`; também um proxy `/cdn/*` → unpkg.com, sem uso no front atual) e `:8000` (admin do Django + `/static/`). Portas 80/443 são publicadas mas não têm site block no Caddyfile.
+- **Dev (Docker)**: `docker-compose-dev.yml` builda back (`docker/Dockerfile.back`: imagem `uv:alpine`, `uv sync --frozen --no-dev`; o build arg `INSTALL_DEV=true`, usado só pelo compose de teste, inclui o grupo `dev` com `pytest`/`ipdb`; entrypoint roda `collectstatic`, `migrate` e `daphne`) e front (`docker/Dockerfile.front`: `bun run build` e um container `alpine` que copia o build para o volume `front_build/` e fica em `tail -f`). Caddy expõe `:3000` (front + proxy de `/api`, `/ws`, `/media`; também um proxy `/cdn/*` → unpkg.com, sem uso no front atual) e `:8000` (admin do Django + `/static/`). Portas 80/443 são publicadas mas não têm site block no Caddyfile.
 - **Prod**: `docker-compose-prod.yml` usa as imagens `sistemapresenca-back:latest` e `sistemapresenca-front:latest` com `pull_policy: never`; mesmo Caddy. Não há registry: `sendimage.py [back] [front]` builda com o compose de dev, faz `docker save` e envia por `scp` para `root@presenca:/images/`; no servidor, `loadimage.py [back] [front]` faz `docker load` e recria o serviço.
 - **Testes**: `docker-compose-test.yml` roda `pytest -q ../tests` dentro do container do back, com banco em `/tmp`. Localmente: `cd back && uv run python -m pytest ../tests`. Config em `pytest.ini` (raiz) + `conftest.py` (adiciona `back/` ao `sys.path`). Fixtures em `tests/conftest.py` (`user`, `member`, `event` com regra única de 50 pts, `code`, `expired_code`, `device`, `active_device`). Cobertura atual: API de check-in (inclusive `history` e `already`), `per-event`, consumer WebSocket (`joinEvent`, erros), device (controller, API e admin), código/rotação/timer, `Config`, `member/me` e upload de foto, pontuação e `didnt_checkin_today`. Não há testes das rotas de auth, dos management commands nem do front.
 - **Versionamento**: `commitizen` (`cz.json`, semver, tag = versão, `CHANGELOG.md` gerado no bump). `.env` na raiz só carrega `APP_VERSION` para o compose. A versão do front vem de `cz.json` em build time.
@@ -154,5 +154,4 @@ Em desenvolvimento, o Vite (`bun run dev`, porta 3000) faz proxy de `/api`, `/me
 - Channel layer em memória: exige um único processo de back. As threads de rotação de código (`code_timer.py`) e o `CodeTimerRegistry` (dict em memória) também assumem processo único.
 - O WebSocket não exige autenticação e o painel `/` é público: qualquer pessoa na rede vê o QR e o placar.
 - `Event.start`/`end` recebem `timezone.now()` na criação e nunca são atualizados automaticamente; como o histórico do membro (`/api/checkin/history`, `/api/score/per-event`) filtra por esse intervalo, eventos criados sem ajuste manual mostram histórico vazio.
-- O front conecta com `ws://` fixo; sob HTTPS o navegador bloqueia a conexão.
 - A lista de pontos a corrigir está em `REVIEW.md`.

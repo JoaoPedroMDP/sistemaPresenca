@@ -1,11 +1,11 @@
-import type { memberI } from "$lib/types/api";
+import type { MemberI } from "$lib/types/api";
 import { loadFromLS, saveToLS, type StoredDataT } from ".";
 
 const KEY = 'member';
 const VERSION = 1;
 
 interface MemberT extends StoredDataT {
-    data: memberI | null;
+    data: MemberI | null;
 }
 
 const DEFAULTS: MemberT = {
@@ -14,11 +14,11 @@ const DEFAULTS: MemberT = {
     data: null
 };
 
-function LSLoadMember(): memberI | null {
+function LSLoadMember(): MemberI | null {
     return loadFromLS(KEY, VERSION, DEFAULTS).data;
 }
 
-function LSSaveMember(member: memberI): void {
+function LSSaveMember(member: MemberI): void {
     let expiresAt = new Date(new Date().getTime() + 5 * 60 * 1000).toISOString(); // Expira em 5 minutos
     let memberData: MemberT = {
         version: VERSION,
