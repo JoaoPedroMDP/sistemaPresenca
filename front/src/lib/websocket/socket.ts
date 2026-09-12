@@ -37,15 +37,16 @@ function createSocket(event_name: string): Promise<boolean> {
         };
     
         ws.onclose = (event: CloseEvent): void => {
-            console.warn(`WebSocket fechou (code: ${event.code}). Reconectando em 3s...`);
             socket.current = null;
-            if(event.code !== 1000){
-                console.error('WebSocket fechado inesperadamente:', event);
-
-            }else{
+            // 1000 é fechamento normal (cliente pediu): não reconecta.
+            // Qualquer outro código é queda (rede, restart do back): reconecta.
+            if(event.code === 1000){
                 console.log('WebSocket fechado normalmente.');
-                setTimeout(() => createSocket(event_name), 3000);
+                return;
             }
+
+            console.warn(`WebSocket fechou inesperadamente (code: ${event.code}). Reconectando em 3s...`);
+            setTimeout(() => createSocket(event_name), 3000);
         };
     });
 
