@@ -14,7 +14,7 @@ function parseLocalDate(iso: string): Date | null {
     return new Date(y, m - 1, d);
 }
 
-/** Semana do aniversário: é o que dá chapéu e confete ao membro. */
+/** Semana do aniversário: é o que dá chapéu ao membro. */
 export function isBirthWeek(birthday: string | null, today: Date = new Date()): boolean {
     if(!birthday) return false;
 

@@ -40,7 +40,7 @@ Nenhuma tela do protótipo exige credencial para ser aberta.
 `memberHTML(member, { size, showName })` em `assets/app.js` é a única marcação
 de um membro em todo o protótipo: foto (ou o placeholder `profileAzul.png`,
 como no `PhotoSelector`), nome completo e, na semana do aniversário, chapéu de
-festa com confete. O Phloating e a lista do tablet usam a mesma função, só com
+festa. O Phloating e a lista do tablet usam a mesma função, só com
 tamanhos diferentes — quem nasce aniversariante ganha os mesmos perks nos dois
 lugares.
 

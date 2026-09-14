@@ -5,25 +5,10 @@
 
 /* ===========================================================
    Componente de membro — foto, nome completo e, na semana do
-   aniversário, chapéu de festa com confete.
+   aniversário, chapéu de festa.
    Mesma marcação em todo lugar: Phloating e lista do tablet.
    =========================================================== */
 const PHOTO_PLACEHOLDER = 'assets/profileAzul.png';
-const CONFETTI_COUNT = 20;
-const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
-
-function confettiHTML(spread) {
-  const between = (a, b) => a + Math.random() * (b - a);
-  return `<div class="member-confetti">` +
-    Array.from({ length: CONFETTI_COUNT }, (_, i) => `
-      <div class="confetti" style="
-        --delay:${i * 0.15}s;
-        --initial-x:${between(spread / 4, spread - spread / 4)}px;
-        --target-x:${between(0, spread)}px;
-        --rotation:${between(0, 360)}deg;
-        background-color:${CONFETTI_COLORS[i % CONFETTI_COLORS.length]};"></div>`).join('') +
-    `</div>`;
-}
 
 /**
  * Marcação de um membro.
@@ -34,7 +19,7 @@ function memberHTML(member, opts = {}) {
   const size = opts.size ?? 80;
   const showName = opts.showName !== false;
   const perks = member.birthday
-    ? `<img class="member-hat" src="assets/partyhat.png" alt="">${confettiHTML(size)}`
+    ? `<img class="member-hat" src="assets/partyhat.png" alt="">`
     : '';
 
   return `
@@ -68,7 +53,7 @@ const MEMBERS = MEMBER_NAMES.map((name, i) => ({
   id: i + 1,
   name,
   photo: null,
-  // Uma pessoa na semana do aniversário, para mostrar chapéu + confete
+  // Uma pessoa na semana do aniversário, para mostrar o chapéu
   birthday: name === 'Camila Rocha',
 }));
 

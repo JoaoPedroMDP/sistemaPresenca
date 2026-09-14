@@ -186,19 +186,6 @@ h1, h2, h3 { margin: 0; font-weight: 500; }
   width: 2.5rem; height: 2.5rem; transform: rotate(30deg);
   object-fit: contain; pointer-events: none; z-index: 1;
 }
-.member-confetti {
-  position: absolute; top: 100%; width: 100%; height: 100%; pointer-events: none;
-}
-.confetti {
-  position: absolute; width: 8px; height: 8px; top: 0;
-  left: var(--initial-x); opacity: 0;
-  animation: confetti-fall 2s infinite; animation-delay: var(--delay);
-}
-@keyframes confetti-fall {
-  0%   { transform: translate(-50%, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(calc(-50% + var(--target-x)), 200px) rotate(var(--rotation)); opacity: 0; }
-}
-
 /* ---------- Phloating ---------- */
 .floating-container { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .floating-item { position: absolute; top: 0; left: 0; will-change: transform; }
@@ -243,8 +230,8 @@ h1, h2, h3 { margin: 0; font-weight: 500; }
 }
 .member-card {
   display: flex; align-items: center; justify-content: center;
-  /* Recorta o confete na moldura; a folga extra no topo acomoda o chapéu,
-     que a rotação de 30° deixa mais alto que os 2.5rem nominais */
+  /* A folga extra no topo acomoda o chapéu, que a rotação de 30° deixa
+     mais alto que os 2.5rem nominais */
   overflow: hidden;
   padding: 1.75rem 1.25rem 1rem;
   border: 2px solid var(--gray-200);
