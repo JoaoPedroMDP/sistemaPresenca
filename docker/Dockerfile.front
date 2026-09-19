@@ -1,4 +1,7 @@
-FROM oven/bun:latest AS build
+# O build do front gera só arquivos estáticos, então roda na arquitetura
+# nativa da máquina que constrói: o Bun aborta sob emulação qemu x64.
+# Só a imagem final (alpine) segue o --platform pedido.
+FROM --platform=$BUILDPLATFORM oven/bun:latest AS build
 
 WORKDIR /app
 
@@ -7,6 +10,10 @@ RUN bun install --frozen-lockfile
 
 COPY . .
 COPY --from=repo-root cz.json /cz.json
+# O `prepare` do bun install roda antes do COPY do svelte.config.js e o
+# .svelte-kit está no .dockerignore, então o tsconfig gerado só existe
+# se o sync rodar aqui; sem ele o vite avisa que não achou o extends.
+RUN bunx svelte-kit sync
 RUN bun run build
 
 FROM alpine:latest

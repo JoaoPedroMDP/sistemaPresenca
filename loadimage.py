@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 
 IMAGES_DIR = "/images"
@@ -24,6 +25,23 @@ def run(cmd: str):
         sys.exit(1)
 
 
+def load(archive: str) -> str:
+    """Faz docker load e devolve o nome da imagem carregada."""
+    print(f"$ docker load < {archive}")
+    with open(archive, "rb") as f:
+        result = subprocess.run(["docker", "load"], stdin=f, capture_output=True, text=True)
+    print(result.stdout, end="")
+    if result.returncode != 0:
+        print(result.stderr, end="")
+        print(f"Comando falhou (exit {result.returncode}).")
+        sys.exit(1)
+    for line in result.stdout.splitlines():
+        if line.startswith("Loaded image: "):
+            return line[len("Loaded image: "):].strip()
+    print("docker load não informou o nome da imagem carregada.")
+    sys.exit(1)
+
+
 def main(services: list[str], version: str):
     # Só carrega imagens e recria containers; o servidor não constrói nada.
     # A imagem carregada fica como sistemapresenca-X:<versão> e a tag latest,
@@ -39,8 +57,12 @@ def main(services: list[str], version: str):
 
     for service in services:
         image = f"sistemapresenca-{service}"
-        run(f"docker load < {IMAGES_DIR}/{service}-{version}.tar.gz")
-        run(f"docker tag {image}:{version} {image}:latest")
+        loaded = load(f"{IMAGES_DIR}/{service}-{version}.tar.gz")
+        # Usa o nome que veio dentro do tarball em vez de supor a tag: um
+        # tarball gravado como :latest (ou renomeado à mão) passa a existir
+        # também como :<versão> para permitir rollback depois.
+        run(f"docker tag {loaded} {image}:{version}")
+        run(f"docker tag {loaded} {image}:latest")
         # APP_VERSION acompanha a imagem carregada, não o .env do servidor
         run(f"APP_VERSION={version} {COMPOSE} up -d --no-deps --force-recreate {service}")
 
