@@ -6,7 +6,7 @@
 /* ===========================================================
    Componente de membro — foto, nome completo e, na semana do
    aniversário, chapéu de festa.
-   Mesma marcação em todo lugar: Phloating e lista do tablet.
+   Mesma marcação em todo lugar.
    =========================================================== */
 const PHOTO_PLACEHOLDER = 'assets/profileAzul.png';
 
@@ -139,7 +139,6 @@ function createPhloating(container) {
   const sign = () => (Math.random() > 0.5 ? 1 : -1);
 
   function addPhoto(member) {
-    // Mesmo componente da lista do tablet, só que flutuando
     const el = memberEl(member, { size: PHOTO_SIZE });
     el.classList.add('floating-item');
     container.appendChild(el);
@@ -195,21 +194,3 @@ function stampVersion(v = '1.1.0') {
   document.body.appendChild(s);
 }
 
-/* ---------- Credencial do dispositivo ----------
- * O aparelho é liberado escaneando um QR gerado no admin. O código vem na
- * URL (/checkin/device/<code>), é resgatado uma única vez e fica guardado
- * aqui. Daí em diante ele entra no path de toda chamada do dispositivo
- * (/api/checkin/device/<code>/...) — é o que prova que quem chama é um
- * aparelho liberado, e não alguém que abriu a URL no próprio celular.
- * Fica no localStorage (não no sessionStorage): reabrir o app ou o navegador
- * não pede ativação de novo. */
-const DEVICE_CODE_KEY = 'device_code';
-
-function getDeviceCode() {
-  return localStorage.getItem(DEVICE_CODE_KEY);
-}
-
-function setDeviceCode(code, eventName) {
-  localStorage.setItem(DEVICE_CODE_KEY, code);
-  localStorage.setItem('device_event', eventName);
-}

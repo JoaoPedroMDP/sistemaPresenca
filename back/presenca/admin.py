@@ -1,18 +1,13 @@
 from typing import Any
-import uuid
 
-import qrcode
-import qrcode.image.svg
 from django.contrib import admin
 from django.db.models.fields.related import ForeignKey
 from django.forms.models import ModelChoiceField
 from django.http import HttpRequest
 from django.utils.formats import date_format
 from django.utils import timezone
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 
-from presenca.models import CheckIn, Code, Config, Device, Event, TimeScoreRules, Member, Score, Scoreboard
+from presenca.models import CheckIn, Code, Config, Event, TimeScoreRules, Member, Score, Scoreboard
 
 
 class HasMemberList(admin.ModelAdmin):
@@ -63,72 +58,6 @@ class CodeAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
 
 
-class DeviceAdmin(admin.ModelAdmin):
-    """
-        Aparelhos liberados para marcar presença sem QR rotativo. Para liberar
-        um tablet: adicione um dispositivo, salve e leia nele o QR que aparece
-        na tela de edição.
-    """
-    list_display = ("__str__", "event", "code", "created_at", "status")
-    list_filter = ("event",)
-    search_fields = ("code", "label")
-    readonly_fields = ("code", "activated_at", "qr_code")
-    actions = ("revoke",)
-
-    # A URL que o QR aponta. Fica na Config para poder mudar sem deploy
-    # (dev, rede local, produção).
-    SITE_URL_CONFIG_KEY = "SITE_URL"
-    SITE_URL_DEFAULT = "http://localhost:5173"
-
-    def get_fields(self, request, obj=None):
-        if obj is None:
-            # Na criação o código ainda não existe e não há QR para mostrar
-            return ("event", "label")
-
-        return ("code", "event", "label", "activated_at", "revoked_at", "qr_code")
-
-    def save_model(self, request, obj, form, change):
-        if not obj.code:
-            obj.code = str(uuid.uuid4())
-        super().save_model(request, obj, form, change)
-
-    @admin.display(description="Situação")
-    def status(self, obj):
-        if obj.revoked_at:
-            return "revogado"
-        if not obj.is_valid():
-            return "expirado"
-        if obj.activated_at:
-            return "em uso"
-
-        return "aguardando leitura do QR"
-
-    @admin.display(description="QR Code de ativação")
-    def qr_code(self, obj):
-        if obj.activated_at:
-            return "Código já resgatado por um aparelho. Para liberar outro, crie um novo dispositivo."
-
-        if obj.revoked_at or not obj.is_valid():
-            return "Dispositivo revogado ou expirado. Crie um novo."
-
-        site_url = Config.get_value(self.SITE_URL_CONFIG_KEY, self.SITE_URL_DEFAULT)
-        url = f"{str(site_url).rstrip('/')}/checkin/device/{obj.code}"
-        img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage, box_size=12)
-        svg = img.to_string(encoding="unicode")
-
-        return format_html(
-            '<div style="max-width:320px">{}</div>'
-            '<p style="margin-top:.5rem">Leia no aparelho. Uso único.<br>'
-            '<code>{}</code></p>',
-            mark_safe(svg), url
-        )
-
-    @admin.action(description="Revogar acesso dos dispositivos selecionados")
-    def revoke(self, request, queryset):
-        revoked = queryset.filter(revoked_at__isnull=True).update(revoked_at=timezone.now())
-        self.message_user(request, f"{revoked} dispositivo(s) revogado(s).")
-
-
 class ScoreAdmin(HasMemberList):
     list_display = ("member", "points")
     list_filter = ("board",)
@@ -164,7 +93,6 @@ class ConfigAdmin(admin.ModelAdmin):
 
 admin.site.site_title = "Painel - Presença Jovens"
 admin.site.register(Code, CodeAdmin)
-admin.site.register(Device, DeviceAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(CheckIn, CheckInAdmin)
 admin.site.register(Scoreboard, ScoreboardAdmin)

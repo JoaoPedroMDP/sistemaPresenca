@@ -88,8 +88,6 @@ class Code(Base):
         Um código é rotacionado a cada rotation_seconds() (Config
         CODE_ROTATION_SECONDS) e vale por validity_seconds(). Várias
         pessoas podem usar o mesmo código.
-
-        O check-in por aparelho liberado não usa este model: ver Device.
     """
     code = models.CharField(max_length=100, unique=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
@@ -151,68 +149,6 @@ class Code(Base):
             "expiração": a folga de validade além da rotação fica invisível.
         """
         return self.created_at + timedelta(seconds=self.rotation_seconds())
-
-
-class Device(Base):
-    """
-        Aparelho liberado para marcar presença sem QR rotativo (hoje, um
-        tablet que passa de mão em mão).
-
-        O código é gerado no admin, chega ao aparelho pelo QR de ativação e é
-        resgatado uma única vez (activated_at). Dali em diante ele vai no path
-        de toda chamada do aparelho: é a credencial que impede alguém de abrir
-        a mesma URL no próprio celular. Vale VALIDITY_DAYS dias e pode ser
-        cortado a qualquer momento (revoked_at).
-    """
-    code = models.CharField(max_length=100, unique=True)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    label = models.CharField(
-        max_length=100, blank=True, verbose_name=_("Apelido"),
-        help_text=_("Como identificar o aparelho: 'tablet da recepção', por exemplo.")
-    )
-    activated_at = models.DateTimeField(
-        null=True, blank=True, verbose_name=_("Ativado em"),
-        help_text=_("Preenchido quando o aparelho lê o QR. Uso único.")
-    )
-    revoked_at = models.DateTimeField(
-        null=True, blank=True, verbose_name=_("Revogado em"),
-        help_text=_("Corta o acesso do aparelho imediatamente.")
-    )
-
-    # Quanto tempo o código vale a partir da criação
-    VALIDITY_DAYS = 30
-
-    class Meta: # type: ignore[misc]
-        verbose_name = _("Dispositivo")
-
-    def __str__(self):
-        return self.label or self.code
-
-    @classmethod
-    def create_for_event(cls, event, label: str = ""):
-        return cls.objects.create(code=str(uuid.uuid4()), event=event, label=label)
-
-    def expires_at(self) -> datetime:
-        return self.created_at + timedelta(days=self.VALIDITY_DAYS)
-
-    def is_valid(self) -> bool:
-        return self.revoked_at is None and timezone.now() <= self.expires_at()
-
-    def activate(self) -> bool:
-        """
-            Resgata o código para este aparelho. Uso único: o UPDATE
-            condicional garante que só o primeiro resgate passa, mesmo com dois
-            aparelhos lendo o QR ao mesmo tempo. Devolve False se já estava
-            ativado.
-        """
-        updated = Device.objects.filter(
-            pk=self.pk, activated_at__isnull=True
-        ).update(activated_at=timezone.now())
-
-        if updated:
-            self.refresh_from_db(fields=["activated_at"])
-
-        return bool(updated)
 
 
 class CheckIn(Base):
