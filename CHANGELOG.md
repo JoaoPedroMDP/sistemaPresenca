@@ -1,3 +1,13 @@
+## 1.2.0 (2026-09-19)
+
+### Feat
+
+- Removidas telas e codigos relacionados a device
+
+### Perf
+
+- Melhoria em Phloating, tela pra ajudar no desenvolvimento
+
 ## 1.1.1 (2026-09-12)
 
 ### Fix
